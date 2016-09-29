@@ -181,7 +181,7 @@ def shm_leapfrog(x0, v0, k, m, dt, end_t=100, plot_x_vs_time=False,
     
     return t, x, v
 
-def shm_error(x0, v0, k, m, dt_power_range=(-5, -1), num_dt=100, end_t=100, 
+def shm_error(x0, v0, k, m, dt_power_range=(-4, -1), num_dt=100, end_t=100, 
                                     plot=False, plot_lin=False, loglog=True):
     """
     Calculates SHM using leapfrog algorithm 
@@ -251,14 +251,14 @@ def lin_reg(x, y):
     m = (sum_x * sum_y - N * sum_x_y) / (sum_x**2 - N * sum_x_squared)
     b = (sum_x * sum_x_y - sum_x_squared * sum_y) \
                                          / (sum_x**2 - N * sum_x_squared)
-    return (m , b)
+    return (m, b)
 
 if __name__ == '__main__':
-    shm_euler_cromer(-10, 30, 1, 4, 0.1, 30, plot_x_vs_time=True, 
-                                    plot_phase_space=False, plot_exact=True)
-    shm_leapfrog(-10, 30, 1, 4, 0.1, 30, plot_x_vs_time=True, 
-                                    plot_phase_space=False, plot_exact=True)
-    shm_error(-10, 30, 1, 4, dt_power_range=(-3,-1), num_dt=100, end_t=30, 
+#     shm_euler_cromer(-5, 2, 1, 4, 0.01, 30, plot_x_vs_time=True, 
+#                                     plot_phase_space=False, plot_exact=True)
+#     shm_leapfrog(-5, 2, 1, 4, 0.01, 30, plot_x_vs_time=True, 
+#                                     plot_phase_space=False, plot_exact=True)
+    shm_error(-5, 2, 1, 4, dt_power_range=(math.log10(2e-5),math.log10(2e-2)), num_dt=100, end_t=50, 
                                     plot=True, plot_lin=True, loglog=True)
     plt.show()
     
