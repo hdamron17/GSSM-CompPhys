@@ -115,7 +115,8 @@ def shm_euler_cromer(x0, v0, k, m, dt, end_t=100, plot_x_vs_time=False,
         
     if plot_phase_space:
         plt.figure()
-        plt.plot(x, np.multiply(v, m), 'k-', label="Euler %sMethod"% cromer_string)
+        plt.plot(x, np.multiply(v, m), 'k-', label="Euler %sMethod"
+                                                            % cromer_string)
         if plot_exact:
             plt.plot(x_exact, np.multiply(v_exact, m), 'r-', 
                                                        label="Exact Solution")
@@ -202,23 +203,29 @@ def shm_error(x0, v0, k, m, dt_power_range=(-5, -1), num_dt=100, end_t=100,
     leapfrog_error = []
     xf_exact = shm_exact(x0, v0, k, m, end_t)[0]
     for delta_t in dt:
-        euler_cromer_xf = shm_euler_cromer(x0, v0, k, m, delta_t, end_t)[1][-1]
+        euler_cromer_xf =shm_euler_cromer(x0, v0, k, m, delta_t, end_t)[1][-1]
         euler_cromer_err = abs((euler_cromer_xf - xf_exact) / xf_exact)
         euler_cromer_error.append(euler_cromer_err)
         
         leapfrog_xf = shm_leapfrog(x0, v0, k, m, delta_t, end_t)[1][-1]
         leapfrog_err = abs((leapfrog_xf - xf_exact) / xf_exact)
         leapfrog_error.append(leapfrog_err)
-#         print(euler_cromer_err, leapfrog_err, xf_exact)
     
     if plot:
         plt.figure()
         plot = plt.loglog if loglog else plt.plot
         if plot_lin:
-            euler_cromer_lin_reg = lin_reg(np.log10(dt), np.log10(euler_cromer_error))
+            euler_cromer_lin_reg = lin_reg(np.log10(dt), 
+                                                np.log10(euler_cromer_error))
             leapfrog_lin_reg = lin_reg(np.log10(dt), np.log10(leapfrog_error))
-            plot(dt, np.power(dt, euler_cromer_lin_reg[0]) * np.power(10, euler_cromer_lin_reg[1]), 'r-')
-            plot(dt, np.power(dt, leapfrog_lin_reg[0]) * np.power(10, leapfrog_lin_reg[1]), 'b-')
+            plot(dt, np.power(dt, euler_cromer_lin_reg[0]) 
+                                * np.power(10, euler_cromer_lin_reg[1]), 'r-')
+            plot(dt, np.power(dt, leapfrog_lin_reg[0])
+                                * np.power(10, leapfrog_lin_reg[1]), 'b-')
+            print("Euler Cromer : y = %gx + %g on loglog plot" 
+                                                    % (euler_cromer_lin_reg))
+            print("Leapfrog : y = %gx + %g on loglog plot"
+                                                         % (leapfrog_lin_reg))
         plot(dt, euler_cromer_error, 'r.', label="Euler Cromer Method")
         plot(dt, leapfrog_error, 'b.', label="Leapfrog Method")
         plt.title("Global Error for SHM after %g seconds" % end_t)
@@ -247,13 +254,12 @@ def lin_reg(x, y):
     return (m , b)
 
 if __name__ == '__main__':
-    dt = 0.01
-#     shm_euler_cromer(-10, 30, 40, 5, dt, 10, plot_x_vs_time=True, 
-#                                        plot_phase_space=False, plot_exact=True)
-#     shm_leapfrog(-10, 30, 40, 5, dt, 10, plot_x_vs_time=True, 
-#                                        plot_phase_space=False, plot_exact=True)
-    shm_error(-10, 30, 0.7, 0.5, dt_power_range=(-3,-1), num_dt=1000, end_t=100, 
-                                    plot=True, plot_lin=True, loglog=False)
+    shm_euler_cromer(-10, 30, 1, 4, 0.1, 30, plot_x_vs_time=True, 
+                                    plot_phase_space=False, plot_exact=True)
+    shm_leapfrog(-10, 30, 1, 4, 0.1, 30, plot_x_vs_time=True, 
+                                    plot_phase_space=False, plot_exact=True)
+    shm_error(-10, 30, 1, 4, dt_power_range=(-3,-1), num_dt=100, end_t=30, 
+                                    plot=True, plot_lin=True, loglog=True)
     plt.show()
     
     
