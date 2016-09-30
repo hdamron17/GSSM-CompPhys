@@ -1,7 +1,8 @@
 '''
+Demonstrates the error of both Euler Cromer method and Leapfrog algorithm for 
+    numerical integration by plotting global truncation error versus time step
 Created on Sep 23, 2016
-
-@author: hdamron1594
+@author: Hunter Damron
 '''
 
 import numpy as np
@@ -201,8 +202,8 @@ def shm_error(x0, v0, k, m, dt_power_range=(-4, -1), num_dt=100, end_t=100,
                                                     num_dt, endpoint=True))
     euler_cromer_error = []
     leapfrog_error = []
-    xf_exact = shm_exact(x0, v0, k, m, end_t)[0]
     for delta_t in dt:
+        xf_exact = shm_exact(x0, v0, k, m, delta_t*(end_t//delta_t+1))[0]
         euler_cromer_xf =shm_euler_cromer(x0, v0, k, m, delta_t, end_t)[1][-1]
         euler_cromer_err = abs((euler_cromer_xf - xf_exact) / xf_exact)
         euler_cromer_error.append(euler_cromer_err)
@@ -254,11 +255,11 @@ def lin_reg(x, y):
     return (m, b)
 
 if __name__ == '__main__':
-#     shm_euler_cromer(-5, 2, 1, 4, 0.01, 30, plot_x_vs_time=True, 
-#                                     plot_phase_space=False, plot_exact=True)
-#     shm_leapfrog(-5, 2, 1, 4, 0.01, 30, plot_x_vs_time=True, 
-#                                     plot_phase_space=False, plot_exact=True)
-    shm_error(-5, 2, 1, 4, dt_power_range=(math.log10(2e-5),math.log10(2e-2)), num_dt=100, end_t=50, 
+    shm_euler_cromer(-5, 2, 1, 4, 0.01, 30, plot_x_vs_time=True, 
+                                    plot_phase_space=False, plot_exact=True)
+    shm_leapfrog(-5, 2, 1, 4, 0.01, 30, plot_x_vs_time=True, 
+                                    plot_phase_space=False, plot_exact=True)
+    shm_error(-5, 2, 1, 4, dt_power_range=(-5, -1), num_dt=100, end_t=50, 
                                     plot=True, plot_lin=True, loglog=True)
     plt.show()
     
