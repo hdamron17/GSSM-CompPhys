@@ -7,10 +7,7 @@
  * Or use the makefile attached to this project
  */
 
-#include <map>
 #include <vector>
-#include <algorithm>
-#include <cmath>
 #include <typeinfo>
 
 #include "gnuplot-iostream.h"
@@ -168,8 +165,8 @@ vector<tuple<double, double, double>> shm_damped_driven(double theta0,
 
 int main() {
         shm_damped_driven(/*theta0*/0.2, /*ang_v0*/0, /*dt*/0.01, /*end_t*/10, 
-                /*nat_freq*/3, /*friction_coef*/2, /*damping_freq*/0, 
-                /*damping_torque*/0, /*plot_x_vs_y*/true, 
+                /*nat_freq*/3, /*friction_coef*/10, /*damping_freq*/20, 
+                /*damping_torque*/2, /*plot_x_vs_y*/true, 
                 /*plot_phase_space*/false, /*plot_exact*/true);
 #ifdef _WIN32
 	// For Windows, prompt for a keystroke before the Gnuplot object goes out of scope so that
