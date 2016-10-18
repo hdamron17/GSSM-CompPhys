@@ -1,8 +1,11 @@
-// Demo of sending data via temporary files.  The default is to send data to gnuplot directly
-// through stdin.
-//
-// Compile it with:
-//   g++ -o example-tmpfile example-tmpfile.cc -lboost_iostreams -lboost_system -lboost_filesystem
+/**
+ * Demo of sending data via temporary files.  The default is to send data to gnuplot directly
+ * through stdin.
+ * 
+ * Compile it with:
+ *   g++ -o main main.cpp -lboost_iostreams -lboost_system -lboost_filesystem
+ * Or use the makefile attached to this project
+ */
 
 #include <map>
 #include <vector>
@@ -38,7 +41,7 @@ double dw_dt(double theta, double ang_v, double t, double nat_freq,
 vector<tuple<double, double>> exact_damped_driven(double theta0,
         double dt, double end_t, double nat_freq, 
         double friction_coef, double damping_freq,  double damping_torque, 
-        double m, bool plot_x_vs_time) {
+        bool plot_x_vs_time) {
     /**
      * Calculates exact damped driven pendulum solution
      * Note: initial angular velocity must be zero
@@ -49,37 +52,37 @@ vector<tuple<double, double>> exact_damped_driven(double theta0,
      * @param friction_coeff: coefficient of friction force
      * @param damping_freq: frequency of damping force
      * @param damping_torque: torque due to damping force
-     * @param m: pendulum mass
      * @param plot_x_vs_t: if True, plots position vs time
      * @return: returns vector containing tuples (time, angular position)
      */
     
-    vector<tuple<double,double>> data; //(t, theta, ang_v)
+    vector<tuple<double,double>> data; //(t, theta)
     data.push_back(make_tuple(0, theta0));
     while(get<0>(data.back()) < end_t) {
         tuple<double,double> last = data.back();
         double t_new = get<0>(last) + dt;
         if(is_close(friction_coef, 2 * nat_freq)) {
             //Critically damped
-            double theta_new = theta0 * (friction_coef * t_new / 2) \
-                                              * exp(-friction_coef * t_new / 2);
+//            double theta_new = theta0 * (friction_coef * t_new / 2) \
+//                                              * exp(-friction_coef * t_new / 2);
+            double temp = friction_coef * t_new / 2;
+            double theta_new = theta0 * (1 + temp) * exp(-temp);
             data.push_back(make_tuple(t_new, theta_new));
         } else if(friction_coef < 2 * nat_freq) {
             //Underdamped
             double temp = sqrt(pow(nat_freq,2) - pow(friction_coef,2) / 4);
             double theta_new = theta0 * exp(-friction_coef * t_new / 2) * \
-                                cos(temp * t_new) + friction_coef / 2 / temp \
-                                * sin(temp * t_new);
+                                (cos(temp * t_new) + friction_coef / 2 / temp \
+                                * sin(temp * t_new));
             data.push_back(make_tuple(t_new, theta_new));
         } else {
             //Overdamped
             double temp = sqrt(pow(friction_coef,2) / 4 - pow(nat_freq,2));
             double theta_new = theta0 * exp(-friction_coef * t_new / 2) * \
-                                cosh(temp * t_new) + friction_coef / 2 / temp \
-                                * sinh(temp * t_new);
+                                (cosh(temp * t_new) + friction_coef / 2 / temp \
+                                * sinh(temp * t_new));
             data.push_back(make_tuple(t_new, theta_new));
         }
-        // TODO finish and check solutions
     }
     
     if(plot_x_vs_time) {
@@ -97,7 +100,7 @@ vector<tuple<double, double>> exact_damped_driven(double theta0,
 vector<tuple<double, double, double>> shm_damped_driven(double theta0, 
         double ang_v0, double dt, double end_t, double nat_freq, 
         double friction_coef, double damping_freq,  double damping_torque, 
-        double m, bool plot_x_vs_time=false, bool plot_phase_space=false, 
+        bool plot_x_vs_time=false, bool plot_phase_space=false, 
         bool plot_exact=false) {
     /**
      * Calculates damped driven pendulum solution by Leapfrog algorithm
@@ -109,7 +112,6 @@ vector<tuple<double, double, double>> shm_damped_driven(double theta0,
      * @param friction_coeff: coefficient of friction force
      * @param damping_freq: frequency of damping force
      * @param damping_torque: torque due to damping force
-     * @param m: pendulum mass
      * @param plot_x_vs_t: if True, plots position vs time
      * @param plot_phase_space: if True, plots momentum vs position
      * @return: returns vector containing tuples (time, position, angular velocity)
@@ -134,14 +136,24 @@ vector<tuple<double, double, double>> shm_damped_driven(double theta0,
         gp << "set autoscale xy\n"
            << "set title \'Position vs. Time for Damped Driven Pendulum\'\n"
            << "set ylabel \'Position (radians)\'\n"
-           << "set xlabel \'Time (s)\'\n"
-           << "unset key\n"
-           << "plot" << gp.file1d(data) << "with lines lt rgb \"blue\"" << "\n";
+           << "set xlabel \'Time (s)\'\n";
+        if(plot_exact) {
+            vector<tuple<double,double>> exact = exact_damped_driven(theta0, dt,
+                    end_t, nat_freq, friction_coef, damping_freq, 
+                    damping_torque, false);
+            gp << "set key\n"
+               << "plot" << gp.file1d(exact) << "with lines lt rgb \"black\""
+                                                       " title \"Exact\", \\\n";
+        } else {
+            gp << "unset key\nplot";
+        }
+        gp << gp.file1d(data) << "with lines lt rgb \"blue\""
+                                                       " title \"Numerical\"\n";
     }
     if(plot_phase_space) {
-        vector<pair<double, double>> phase_space; //(position, momentum)
+        vector<pair<double, double>> phase_space; //(position, velocity)
         for(tuple<double,double,double> point : data) {
-            phase_space.push_back(make_pair(get<1>(point), m * get<2>(point)));
+            phase_space.push_back(make_pair(get<1>(point), get<2>(point)));
         }
         Gnuplot gp;
         gp << "set autoscale xy\n"
@@ -156,13 +168,9 @@ vector<tuple<double, double, double>> shm_damped_driven(double theta0,
 
 int main() {
         shm_damped_driven(/*theta0*/0.2, /*ang_v0*/0, /*dt*/0.01, /*end_t*/10, 
-                /*nat_freq*/sqrt(9.8/1), /*friction_coef*/1, /*damping_freq*/0, 
-                /*damping_torque*/0, /*mass*/3, /*plot_x_vs_y*/true, 
+                /*nat_freq*/3, /*friction_coef*/2, /*damping_freq*/0, 
+                /*damping_torque*/0, /*plot_x_vs_y*/true, 
                 /*plot_phase_space*/false, /*plot_exact*/true);
-        exact_damped_driven(/*theta0*/0.2, /*dt*/0.01, /*end_t*/10, 
-                /*nat_freq*/sqrt(9.8/1), /*friction_coef*/1, /*damping_freq*/0, 
-                /*damping_torque*/0, /*mass*/3, /*plot_x_vs_y*/true);
-
 #ifdef _WIN32
 	// For Windows, prompt for a keystroke before the Gnuplot object goes out of scope so that
 	// the gnuplot window doesn't get closed.
