@@ -26,7 +26,7 @@ double dw_dt(double theta, double ang_v, double t, double nat_freq,
      * @param ang_v: angular velocity
      * @param t: time from beginning of damping force oscillation 
      * @param nat_freq: natural frequency of ideal pendulum
-     * @param friction_coeff: coefficient of friction force
+     * @param friction_coef: coefficient of friction force
      * @param damping_freq: frequency of damping force
      * @param damping_torque: torque due to damping force
      * @return returns instantaneous acceleration
@@ -46,7 +46,7 @@ vector<tuple<double, double>> exact_damped_driven(double theta0,
      * @param dt: time delta (s)
      * @param end_t: end time of calculation (s)
      * @param nat_freq: natural frequency of ideal pendulum
-     * @param friction_coeff: coefficient of friction force
+     * @param friction_coef: coefficient of friction force
      * @param damping_freq: frequency of damping force
      * @param damping_torque: torque due to damping force
      * @param plot_x_vs_t: if True, plots position vs time
@@ -60,8 +60,6 @@ vector<tuple<double, double>> exact_damped_driven(double theta0,
         double t_new = get<0>(last) + dt;
         if(is_close(friction_coef, 2 * nat_freq)) {
             //Critically damped
-//            double theta_new = theta0 * (friction_coef * t_new / 2) \
-//                                              * exp(-friction_coef * t_new / 2);
             double temp = friction_coef * t_new / 2;
             double theta_new = theta0 * (1 + temp) * exp(-temp);
             data.push_back(make_tuple(t_new, theta_new));
@@ -106,7 +104,7 @@ vector<tuple<double, double, double>> shm_damped_driven(double theta0,
      * @param dt: time delta (s)
      * @param end_t: end time of calculation (s)
      * @param nat_freq: natural frequency of ideal pendulum
-     * @param friction_coeff: coefficient of friction force
+     * @param friction_coef: coefficient of friction force
      * @param damping_freq: frequency of damping force
      * @param damping_torque: torque due to damping force
      * @param plot_x_vs_t: if True, plots position vs time
@@ -163,11 +161,41 @@ vector<tuple<double, double, double>> shm_damped_driven(double theta0,
     return data;
 }
 
+vector<tuple<double,double>> ampl_vs_freq(double theta0, 
+        double ang_v0, double dt, double end_t, double nat_freq, 
+        double friction_coef, double d_damping_freq, double end_damping_freq, 
+        double damping_torque, bool plot=false) {
+    /**
+     * Calculates amplitude as a function of frequency ratio
+     * @param theta0: initial position
+     * @param ang_v0: initial angular velocity
+     * @param dt: time delta (s)
+     * @param end_t: end time of calculation (s)
+     * @param nat_freq: natural frequency of ideal pendulum
+     * @param friction_coef: coefficient of friction force
+     * @param d_damping_freq: step for frequencies of damping force
+     * @param end_damping_freq: largest damping frequency
+     * @param damping_torque: torque due to damping force
+     * @param plto: if true, plots amplitude vs frequency
+     * @return: returns vector containing tuples (frequency, amplitude)
+     */
+//    vector<tuple<double,double>> freq_ampl; //contains (frequency, amplitude)
+//    double damping_freq = 0;
+//    do {
+//        bool finished = false;
+//        double prev;
+//        bool direction = true; //true is positive direction
+//        while(!finished) {
+//            
+//        }
+//    } while(get<0>(freq_ampl.back()) < friction_coef_range);
+}
+
 int main() {
-        shm_damped_driven(/*theta0*/0.2, /*ang_v0*/0, /*dt*/0.01, /*end_t*/10, 
-                /*nat_freq*/3, /*friction_coef*/10, /*damping_freq*/20, 
+        shm_damped_driven(/*theta0*/0.2, /*ang_v0*/0, /*dt*/0.01, /*end_t*/2000, 
+                /*nat_freq*/3, /*friction_coef*/10, /*damping_freq*/0.01, 
                 /*damping_torque*/2, /*plot_x_vs_y*/true, 
-                /*plot_phase_space*/false, /*plot_exact*/true);
+                /*plot_phase_space*/false, /*plot_exact*/false);
 #ifdef _WIN32
 	// For Windows, prompt for a keystroke before the Gnuplot object goes out of scope so that
 	// the gnuplot window doesn't get closed.
