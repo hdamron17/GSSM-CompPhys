@@ -104,20 +104,20 @@ vector<tuple<double, double>> exact_damped_driven(double theta0,
     return data;
 }
 
+/**
+ * Calculates damped driven pendulum solution by Leapfrog algorithm
+ * @param previous: previous step (time, ang_position, ang_velocity)
+ * @param dt: time delta (s)
+ * @param nat_freq: natural frequency of ideal pendulum
+ * @param friction_coef: coefficient of friction force
+ * @param driving_freq: frequency of driving force
+ * @param driving_torque: torque due to driving force
+ * @param linear: plots linear estimation if true, otherwise nonlinear
+ * @return: returns tuple (time, ang_position, ang_velocity)
+ */
 tuple<double,double,double> one_step(tuple<double,double,double> prev,double dt, 
         double nat_freq, double friction_coef, double driving_freq, 
         double driving_torque, bool linear=true) {
-    /**
-     * Calculates damped driven pendulum solution by Leapfrog algorithm
-     * @param previous: previous step (time, ang_position, ang_velocity)
-     * @param dt: time delta (s)
-     * @param nat_freq: natural frequency of ideal pendulum
-     * @param friction_coef: coefficient of friction force
-     * @param driving_freq: frequency of driving force
-     * @param driving_torque: torque due to driving force
-     * @param linear: plots linear estimation if true, otherwise nonlinear
-     * @return: returns tuple (time, ang_position, ang_velocity)
-     */
     double theta_new, ang_v_new;
     double time_new = get<0>(prev) + dt;
     if(linear) {
@@ -160,7 +160,7 @@ tuple<double,double,double> one_step(tuple<double,double,double> prev,double dt,
  * @param driving_torque: torque due to driving force
  * @param linear: plots linear estimation if true, otherwise nonlinear
  * @param plot_x_vs_t: if True, plots position vs time
- * @param plot_phase_space: if True, plots momentum vs position
+ * @param plot_phase_space: if True, plots angular velocity vs position
  * @param plot_exact: if true, plots exact solution (only valid with not damping/driving)
  * @return: returns vector containing tuples (time, position, angular velocity)
  */
@@ -203,7 +203,7 @@ vector<tuple<double, double, double>> shm_damped_driven(double theta0,
         Gnuplot gp;
         gp << "set autoscale xy\n"
            << "set title \'Phase Space Diagram for Damped Driven Pendulum\'\n"
-           << "set ylabel \'Angular Momentum (kg*radians/s)\'\n"
+           << "set ylabel \'Angular Velocity (radians/s)\'\n"
            << "set xlabel \'Position (radians)\'\n"
            << "unset key\n"
            << "plot" << gp.file1d(phase_space) << "with lines lt rgb \"red\"\n";
@@ -216,17 +216,16 @@ vector<tuple<double, double, double>> shm_damped_driven(double theta0,
  * @param turns Queue containing (position, time) for function turns
  * @return Returns true if even indexes are all same and odd indexes are same
  */
-bool _stable(deque<tuple<double,double>> *turns) {
+bool _stable(deque<tuple<double,double>> *turns, double epsilon) {
     if(turns->size() <= 2) {
         cerr << "Queue must have at least 2 points to be stable";
-        //TODO possibly actually throw an error, but for now, nah
     }
     double peak1 = get<0>((*turns)[0]);
     double peak2 = get<0>((*turns)[1]);
     int i = 0;
     for(tuple<double,double> turn : *turns) {
-        if( (i % 2 == 0 && !is_close(get<0>(turn), peak1, 0.0001)) //case: i is even
-            || (i % 2 == 1 && !is_close(get<0>(turn), peak2, 0.0001)) ) { //case: i is odd
+        if( (i % 2 == 0 && !is_close(get<0>(turn), peak1, epsilon)) //case: i is even
+            || (i % 2 == 1 && !is_close(get<0>(turn), peak2, epsilon)) ) { //case: i is odd
             return false;
         }
         i++;
@@ -267,6 +266,7 @@ tuple<double,double> _calc_ampl_freq(deque<tuple<double,double>> *turns) {
  * @param friction_coef: coefficient of friction force
  * @param driving_freq: frequency of driving force
  * @param driving_torque: torque due to driving force
+ * @param linear: if true, plots linear estimation, else nonlinear
  * @param linear_time: time after which velocity can be confirmed zero
  * @param loops_precision: number wavelengths before confirming amplitude
  * @return: returns tuple with (amplitude, frequency) at long time
@@ -274,7 +274,7 @@ tuple<double,double> _calc_ampl_freq(deque<tuple<double,double>> *turns) {
 tuple<double,double> _ampl_freq(double theta0, 
         double ang_v0, double dt, double nat_freq, 
         double friction_coef, double driving_freq, double driving_torque, 
-        double linear_time=1, int loops_precision=10) {
+        bool linear=true, double linear_time=20, int loops_precision=10) {
     int lin_max_steps = int(linear_time / dt) + 1;
     deque<tuple<double,double>> turns; //positions and times of mins and maxes
     tuple<double,double> initializer = make_tuple(theta0 + 1, 0); //value to fill deque before looping
@@ -287,7 +287,7 @@ tuple<double,double> _ampl_freq(double theta0,
     
     while(true) {
         step = one_step(step, dt, nat_freq, friction_coef, driving_freq, \
-                                                                driving_torque);
+                                                        driving_torque, linear);
         double new_ang_v = get<2>(step);
         if(is_close(new_ang_v, 0)) {
             //case: next_step has same position as previousd
@@ -300,9 +300,9 @@ tuple<double,double> _ampl_freq(double theta0,
             direction = !direction; //reverse direction
             turns.pop_front(); //remove oldest min/max
             turns.push_back( make_tuple(get<1>(step), get<0>(step)) ); //new pos/time
-            if(_stable(&turns)) {
+            if(_stable(&turns, dt / 2)) { //precision capabilities based on dt
                 return _calc_ampl_freq(&turns); //calculates amplitude and frequency
-            }   
+            }
         }
         if(same_count > lin_max_steps) {
             return make_tuple(0, 0); //linear has no amplitude or position
@@ -365,7 +365,7 @@ map<double,vector<tuple<double,double>>> various_ampl_vs_freq(double theta0,
         double ang_v0, double dt, double nat_freq, 
         vector<double> friction_coef, double d_driving_freq, double end_driving_freq, 
         double driving_torque, bool plot=false, vector<string> colors = 
-{"rgb \"red\"", "rgb \"blue\"", "rgb \"green\"", "rgb \"violet\""}) {
+        {"rgb \"red\"", "rgb \"blue\"", "rgb \"green\"", "rgb \"violet\""}) {
     map<double,vector<tuple<double,double>>> ret;
     for(size_t i = 0; i < friction_coef.size(); i++) {
         ret[friction_coef[i]] = ampl_vs_freq(theta0, ang_v0, dt, 
@@ -389,7 +389,7 @@ map<double,vector<tuple<double,double>>> various_ampl_vs_freq(double theta0,
             } else {
                 gp << "black";
             }
-            gp << " title \"" << series.first << "\", \\\n";
+            gp << " title \"q = " << series.first << "\", \\\n";
             i++;
         }
         gp << ";\n"; //to end plotting mutliple funcions
@@ -397,25 +397,213 @@ map<double,vector<tuple<double,double>>> various_ampl_vs_freq(double theta0,
     return ret;
 }
 
+/**
+ * Calculates amplitude as a function of frequency ratio for various dampings
+ * @param d_theta0: step size for initial position
+ * @param ang_v0: initial angular velocity
+ * @param dt: time delta (s)
+ * @param nat_freq: natural frequency of ideal pendulum
+ * @param friction_coef: array of damping damping coefficients to plot
+ * @param driving_freq: frequency for driving force
+ * @param driving_torque: torque due to driving force
+ * @param plot: if true, plots amplitude vs frequency
+ * @param linear: if true, plots linear estimation, else nonlinear
+ * @return: returns vector containing tuples (friction coeff, ampl_vs_freq data)
+ */
+vector<tuple<double,double>> period_vs_ampl(double d_theta0, 
+        double ang_v0, double dt, double nat_freq,
+        double friction_coef, double driving_freq, double driving_torque, 
+        bool linear=true, bool plot=false) {
+    vector<tuple<double,double>> ret;
+    if(ang_v0 != 0)
+        cerr << "Cannot calculate if an initial velocity is present" << endl;
+    for(double theta0 = d_theta0; theta0 <= M_PI-d_theta0; theta0 += d_theta0) {
+        tuple<double,double> ampl_freq = _ampl_freq(theta0, ang_v0, dt, \
+                    nat_freq, friction_coef, driving_torque, driving_torque, \
+                    linear);
+        //tuple contains (amplitude, frequency) - convert to (period, amplitude)
+        ret.push_back(make_tuple(1 / get<1>(ampl_freq), get<0>(ampl_freq)));
+    }
+    if(plot) {
+        Gnuplot gp;
+        gp << "set autoscale xy\n"
+           << "set title \'Period vs Amplitude\'\n"
+           << "set ylabel \'Period (s)\'\n"
+           << "set xlabel \'Amplitude (rad)\'\n"
+           << "unset key\n";
+        if(is_close(get<0>(ret.back()), get<0>(ret.front()))) {
+            gp << "set xrange [" << M_PI-0.1 << ":" << M_PI+0.1 << "]\n";
+            //point out of view to give series a domain
+            ret.push_back(make_tuple(get<0>(ret.back())+0.001, get<1>(ret.back())));
+        }
+        gp << "plot" << gp.file1d(ret) << "with lines lt rgb \"blue\"\n";
+    }
+}
+
+/**
+ * Plots linear and nonlinear together
+ * @param theta0: initial position
+ * @param ang_v0: initial angular velocity
+ * @param dt: time delta (s)
+ * @param end_t: end time of calculation (s)
+ * @param nat_freq: natural frequency of ideal pendulum
+ * @param friction_coef: coefficient of friction force
+ * @param driving_freq: frequency of driving force
+ * @param driving_torque: torque due to driving force
+ * @param plot_x_vs_t: if True, plots position vs time
+ * @param plot_phase_space: if True, plots angular velocity vs position
+ * Note: does not return the data, only plots it
+ */
+void plot_lin_and_nonlin(double theta0, double ang_v0, double dt, 
+       double end_t, double nat_freq, bool plot_phase_space=false, 
+       bool plot_exact=false) {
+    vector<tuple<double,double,double>> lin = shm_damped_driven(theta0, ang_v0,
+            dt, end_t, nat_freq, 0, 0,  0, false, false, false, true);
+    vector<tuple<double,double,double>> nonlin = shm_damped_driven(theta0, 
+            ang_v0, dt, end_t, nat_freq, 0, 0,  0, false, false, false, false);
+    
+    Gnuplot gp;
+    gp << "set autoscale xy\n"
+       << "set title \'Position vs. Time for Damped Driven Pendulum\'\n"
+       << "set ylabel \'Position (radians)\'\n"
+       << "set xlabel \'Time (s)\'\n"
+       << "set key\n";
+    gp << "plot" << gp.file1d(lin) << "with lines lt rgb \"blue\" title "
+       << "\"Linear\", \\\n";
+    if(plot_exact) {
+        vector<tuple<double,double>> exact = exact_damped_driven(theta0, dt,
+                end_t, nat_freq, 0, 0, 0, false);
+        gp << gp.file1d(exact) << "with lines lt rgb \"black\""
+                                                   " title \"Exact\", \\\n";
+    }
+    gp << gp.file1d(nonlin) << "with lines lt rgb \"red\" title "
+       << "\"Nonlinear\"\n";
+   if(plot_phase_space) {
+       vector<pair<double,double>> lin_phase_space; //(position, velocity)
+       vector<pair<double,double>> nonlin_phase_space;
+       for(tuple<double,double,double> point : lin) {
+           lin_phase_space.push_back(make_pair(get<1>(point), get<2>(point)));
+       }
+       for(tuple<double,double,double> point : nonlin) {
+           nonlin_phase_space.push_back(make_pair(get<1>(point), get<2>(point)));
+       }
+       Gnuplot gp;
+       gp << "set autoscale xy\n"
+          << "set title \'Phase Space Diagram for Damped Driven Pendulum\'\n"
+          << "set ylabel \'Angular Velocity (radians/s)\'\n"
+          << "set xlabel \'Position (radians)\'\n"
+          << "unset key\n"
+          << "plot" << gp.file1d(lin_phase_space) << "with lines lt rgb \"blue\""
+          << " title \"Linear\", \\\n"
+          << gp.file1d(nonlin_phase_space) << "with lines lt rgb "
+          << "\"red\" title \"Nonlinear\"\n";
+   }
+}
+
 int main() {
-    shm_damped_driven(/*theta0*/3.14, /*ang_v0*/0.1, /*dt*/0.01, /*end_t*/10, 
-            /*nat_freq*/9, /*friction_coef*/0, /*driving_freq*/0, 
-            /*driving_torque*/0, /*plot_x_vs_y*/true, 
-            /*plot_phase_space*/false, /*plot_exact*/false, /*linear*/false);
+//    shm_damped_driven(/*theta0*/3.14159, /*ang_v0*/0, /*dt*/0.01, /*end_t*/10, 
+//            /*nat_freq*/5, /*friction_coef*/0, /*driving_freq*/0, 
+//            /*driving_torque*/0, /*plot_x_vs_y*/true, 
+//            /*plot_phase_space*/true, /*plot_exact*/false, /*linear*/false);
+    
+//    for(double nat_freq = 1; nat_freq <= 10; nat_freq += 1) {
+//        shm_damped_driven(/*theta0*/5, /*ang_v0*/0, /*dt*/0.01, /*end_t*/10, 
+//                /*nat_freq*/ nat_freq, /*friction_coef*/0, /*driving_freq*/0, 
+//                /*driving_torque*/0, /*plot_x_vs_y*/true, 
+//                /*plot_phase_space*/false, /*plot_exact*/false, /*linear*/false);
+//        tuple<double,double> ampl_freq = _ampl_freq(/*theta0*/ 5, /*ang_v0*/ 0, /*dt*/ 0.01, /*nat_freq*/ nat_freq, 
+//            /*friction_coef*/ 0, /*driving_freq*/ 0, /*driving_torque*/ 0, 
+//            /*linear*/ false, /*linear_time*/ 1, /*loops_precision*/ 4);
+//        cout << get<0>(ampl_freq) << " -> " << get<1>(ampl_freq) << endl;
+//    }
     
 //    ampl_vs_freq(/*theta0*/0.2, /*ang_v0*/0, /*dt*/0.0001, /*nat_freq*/5, 
-//        /*friction_coef*/2, /*d_driving_freq*/0.1, /*end_driving_freq*/20, 
+//        /*friction_coef*/0.5, /*d_driving_freq*/0.1, /*end_driving_freq*/20, 
 //        /*driving_torque*/4, /*plot*/true);
     
-    various_ampl_vs_freq(/*theta0*/0.2, /*ang_v0*/0, /*dt*/0.0001, /*nat_freq*/5, 
-        /*friction_coef*/{0.01,1,4,10,15}, /*d_driving_freq*/0.5, /*end_driving_freq*/20, 
-        /*driving_torque*/4, /*plot*/true);
-        
+//    various_ampl_vs_freq(/*theta0*/0.2, /*ang_v0*/0, /*dt*/0.001, /*nat_freq*/5, 
+//        /*friction_coef*/{0.1,1,4}, /*d_driving_freq*/1, /*end_driving_freq*/20, 
+//        /*driving_torque*/4, /*plot*/true);
+
         //## COOL SCIENCE ##//
 //    shm_damped_driven(/*theta0*/0.2, /*ang_v0*/0, /*dt*/0.01, /*end_t*/200, 
 //        /*nat_freq*/5, /*friction_coef*/0.02, /*driving_freq*/0.15, 
 //        /*driving_torque*/9, /*plot_x_vs_y*/true, 
 //        /*plot_phase_space*/true, /*plot_exact*/false);
+    
+/******************************************************************************/
+//    //Problem 1
+//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
+//            /*nat_freq*/ 5, /*friction_coef*/ 2, /*driving_freq*/ 4, 
+//            /*driving_torque*/ 0.5, /*plot_x_vs_y*/ true, 
+//            /*plot_phase_space*/ true, /*plot_exact*/ false, /*linear*/ true);
+//    
+//    //Problems 3, 6, and 7
+//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
+//            /*nat_freq*/ 4, /*friction_coef*/ 1, /*driving_freq*/ 0, 
+//            /*driving_torque*/ 0, /*plot_x_vs_y*/ true, 
+//            /*plot_phase_space*/ true, /*plot_exact*/ true, /*linear*/ true);
+//
+//    //Problems 4, 6, and 7
+//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
+//            /*nat_freq*/ 4, /*friction_coef*/ 8, /*driving_freq*/ 0, 
+//            /*driving_torque*/ 0, /*plot_x_vs_y*/ true, 
+//            /*plot_phase_space*/ true, /*plot_exact*/ true, /*linear*/ true);
+//    
+//    //Problems 5, 6, and 7
+//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
+//            /*nat_freq*/ 4, /*friction_coef*/ 15, /*driving_freq*/ 0, 
+//            /*driving_torque*/ 0, /*plot_x_vs_y*/ true, 
+//            /*plot_phase_space*/ true, /*plot_exact*/ true, /*linear*/ true);
+//    
+//    //Problems 10 - underdamped
+//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
+//            /*nat_freq*/ 4, /*friction_coef*/ 1, /*driving_freq*/ 3, 
+//            /*driving_torque*/ 0.5, /*plot_x_vs_y*/ true, 
+//            /*plot_phase_space*/ true, /*plot_exact*/ false, /*linear*/ true);
+//    
+//    //Problems 10 - critically damped
+//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
+//            /*nat_freq*/ 4, /*friction_coef*/ 8, /*driving_freq*/ 3, 
+//            /*driving_torque*/ 0.5, /*plot_x_vs_y*/ true, 
+//            /*plot_phase_space*/ true, /*plot_exact*/ false, /*linear*/ true);
+//    
+//    //Problems 10 - overdamped
+//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
+//            /*nat_freq*/ 4, /*friction_coef*/ 15, /*driving_freq*/ 3, 
+//            /*driving_torque*/ 0.5, /*plot_x_vs_y*/ true, 
+//            /*plot_phase_space*/ true, /*plot_exact*/ false, /*linear*/ true);
+//    
+//    //Problem 11
+//    various_ampl_vs_freq(/*theta0*/0.2, /*ang_v0*/0, /*dt*/0.001, /*nat_freq*/6, 
+//        /*friction_coef*/{3, 12, 18}, /*d_driving_freq*/0.1, /*end_driving_freq*/20, 
+//        /*driving_torque*/4, /*plot*/true);
+//    
+//    //Problem 14
+//    shm_damped_driven(/*theta0*/3, /*ang_v0*/0, /*dt*/0.01, /*end_t*/10, 
+//        /*nat_freq*/5, /*friction_coef*/0, /*driving_freq*/0, 
+//        /*driving_torque*/0, /*plot_x_vs_y*/true, 
+//        /*plot_phase_space*/false, /*plot_exact*/false, /*linear*/false);
+//    
+//    //Problem 15
+//    plot_lin_and_nonlin(/*theta0*/ 0.1, /*ang_v0*/ 0, /*dt*/ 0.01, 
+//       /*end_t*/ 20, /*nat_freq*/ 1, /*plot_phase_space*/ false, 
+//       /*plot_exact*/ false);
+//    
+//    //Problem 16
+//    plot_lin_and_nonlin(/*theta0*/ 3, /*ang_v0*/ 0, /*dt*/ 0.01, 
+//       /*end_t*/ 20, /*nat_freq*/ 1, /*plot_phase_space*/ false, 
+//       /*plot_exact*/ false);
+//    
+    //Problem 17 nonlinear
+    period_vs_ampl(/*d_theta0*/ 0.1, /*ang_v0*/ 0, /*dt*/ 0.001, /*nat_freq*/ 1, 
+        /*friction_coef*/ 0, /*driving_freq*/ 0, /*driving_torque*/ 0, 
+        /*linear*/ false, /*plot*/ true);   
+    
+    //Problem 17 linear
+    period_vs_ampl(/*d_theta0*/ 0.1, /*ang_v0*/ 0, /*dt*/ 0.001, /*nat_freq*/ 1, 
+        /*friction_coef*/ 0, /*driving_freq*/ 0, /*driving_torque*/ 0, 
+        /*linear*/ true, /*plot*/ true);
         
 #ifdef _WIN32
     // For Windows, prompt for a keystroke before the Gnuplot object goes out of scope so that
