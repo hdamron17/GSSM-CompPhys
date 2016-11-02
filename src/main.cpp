@@ -216,14 +216,14 @@ vector<tuple<double, double, double>> shm_damped_driven(double theta0,
  * @param turns Queue containing (position, time) for function turns
  * @return Returns true if even indexes are all same and odd indexes are same
  */
-bool _stable(deque<tuple<double,double>> *turns, double epsilon) {
-    if(turns->size() <= 2) {
+bool _stable(deque<tuple<double,double>> turns, double epsilon) {
+    if(turns.size() <= 2) {
         cerr << "Queue must have at least 2 points to be stable";
     }
-    double peak1 = get<0>((*turns)[0]);
-    double peak2 = get<0>((*turns)[1]);
+    double peak1 = get<0>(turns[0]);
+    double peak2 = get<0>(turns[1]);
     int i = 0;
-    for(tuple<double,double> turn : *turns) {
+    for(tuple<double,double> turn : turns) {
         if( (i % 2 == 0 && !is_close(get<0>(turn), peak1, epsilon)) //case: i is even
             || (i % 2 == 1 && !is_close(get<0>(turn), peak2, epsilon)) ) { //case: i is odd
             return false;
@@ -233,14 +233,14 @@ bool _stable(deque<tuple<double,double>> *turns, double epsilon) {
     return true;
 }
 
-tuple<double,double> _calc_ampl_freq(deque<tuple<double,double>> *turns) {
+tuple<double,double> _calc_ampl_freq(deque<tuple<double,double>> turns) {
     //Note: deque should be even size but is not required
     int i = 0;
     double prev_time; 
     double peak_total1 = 0; //sums either mins or maxes
     double peak_total2 = 0; //sums the opposite of peak_total1
     double time_total = 0; //sums periods
-    for(tuple<double,double> turn : *turns) {
+    for(tuple<double,double> turn : turns) {
         if(i % 2 == 0) {
             peak_total1 += get<0>(turn);
             prev_time = get<1>(turn);
@@ -250,7 +250,7 @@ tuple<double,double> _calc_ampl_freq(deque<tuple<double,double>> *turns) {
         }
         i++;
     }
-    int size = turns->size();
+    int size = turns.size();
     double avg_peak1 = peak_total1 / (size / 2 + size % 2); //avg for first set 
     double avg_peak2 = peak_total2 / (size / 2); //avg for second set
     double avg_time = time_total / (size / 2); //avg period
@@ -300,8 +300,8 @@ tuple<double,double> _ampl_freq(double theta0,
             direction = !direction; //reverse direction
             turns.pop_front(); //remove oldest min/max
             turns.push_back( make_tuple(get<1>(step), get<0>(step)) ); //new pos/time
-            if(_stable(&turns, dt / 2)) { //precision capabilities based on dt
-                return _calc_ampl_freq(&turns); //calculates amplitude and frequency
+            if(_stable(turns, dt / 2)) { //precision capabilities based on dt
+                return _calc_ampl_freq(turns); //calculates amplitude and frequency
             }
         }
         if(same_count > lin_max_steps) {
@@ -501,100 +501,69 @@ void plot_lin_and_nonlin(double theta0, double ang_v0, double dt,
 }
 
 int main() {
-//    shm_damped_driven(/*theta0*/3.14159, /*ang_v0*/0, /*dt*/0.01, /*end_t*/10, 
-//            /*nat_freq*/5, /*friction_coef*/0, /*driving_freq*/0, 
-//            /*driving_torque*/0, /*plot_x_vs_y*/true, 
-//            /*plot_phase_space*/true, /*plot_exact*/false, /*linear*/false);
+    //Problem 1
+    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
+            /*nat_freq*/ 5, /*friction_coef*/ 2, /*driving_freq*/ 4, 
+            /*driving_torque*/ 0.5, /*plot_x_vs_y*/ true, 
+            /*plot_phase_space*/ true, /*plot_exact*/ false, /*linear*/ true);
     
-//    for(double nat_freq = 1; nat_freq <= 10; nat_freq += 1) {
-//        shm_damped_driven(/*theta0*/5, /*ang_v0*/0, /*dt*/0.01, /*end_t*/10, 
-//                /*nat_freq*/ nat_freq, /*friction_coef*/0, /*driving_freq*/0, 
-//                /*driving_torque*/0, /*plot_x_vs_y*/true, 
-//                /*plot_phase_space*/false, /*plot_exact*/false, /*linear*/false);
-//        tuple<double,double> ampl_freq = _ampl_freq(/*theta0*/ 5, /*ang_v0*/ 0, /*dt*/ 0.01, /*nat_freq*/ nat_freq, 
-//            /*friction_coef*/ 0, /*driving_freq*/ 0, /*driving_torque*/ 0, 
-//            /*linear*/ false, /*linear_time*/ 1, /*loops_precision*/ 4);
-//        cout << get<0>(ampl_freq) << " -> " << get<1>(ampl_freq) << endl;
-//    }
-    
-//    ampl_vs_freq(/*theta0*/0.2, /*ang_v0*/0, /*dt*/0.0001, /*nat_freq*/5, 
-//        /*friction_coef*/0.5, /*d_driving_freq*/0.1, /*end_driving_freq*/20, 
-//        /*driving_torque*/4, /*plot*/true);
-    
-//    various_ampl_vs_freq(/*theta0*/0.2, /*ang_v0*/0, /*dt*/0.001, /*nat_freq*/5, 
-//        /*friction_coef*/{0.1,1,4}, /*d_driving_freq*/1, /*end_driving_freq*/20, 
-//        /*driving_torque*/4, /*plot*/true);
+    //Problems 3, 6, and 7
+    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
+            /*nat_freq*/ 4, /*friction_coef*/ 1, /*driving_freq*/ 0, 
+            /*driving_torque*/ 0, /*plot_x_vs_y*/ true, 
+            /*plot_phase_space*/ true, /*plot_exact*/ true, /*linear*/ true);
 
-        //## COOL SCIENCE ##//
-//    shm_damped_driven(/*theta0*/0.2, /*ang_v0*/0, /*dt*/0.01, /*end_t*/200, 
-//        /*nat_freq*/5, /*friction_coef*/0.02, /*driving_freq*/0.15, 
-//        /*driving_torque*/9, /*plot_x_vs_y*/true, 
-//        /*plot_phase_space*/true, /*plot_exact*/false);
+    //Problems 4, 6, and 7
+    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
+            /*nat_freq*/ 4, /*friction_coef*/ 8, /*driving_freq*/ 0, 
+            /*driving_torque*/ 0, /*plot_x_vs_y*/ true, 
+            /*plot_phase_space*/ true, /*plot_exact*/ true, /*linear*/ true);
     
-/******************************************************************************/
-//    //Problem 1
-//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
-//            /*nat_freq*/ 5, /*friction_coef*/ 2, /*driving_freq*/ 4, 
-//            /*driving_torque*/ 0.5, /*plot_x_vs_y*/ true, 
-//            /*plot_phase_space*/ true, /*plot_exact*/ false, /*linear*/ true);
-//    
-//    //Problems 3, 6, and 7
-//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
-//            /*nat_freq*/ 4, /*friction_coef*/ 1, /*driving_freq*/ 0, 
-//            /*driving_torque*/ 0, /*plot_x_vs_y*/ true, 
-//            /*plot_phase_space*/ true, /*plot_exact*/ true, /*linear*/ true);
-//
-//    //Problems 4, 6, and 7
-//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
-//            /*nat_freq*/ 4, /*friction_coef*/ 8, /*driving_freq*/ 0, 
-//            /*driving_torque*/ 0, /*plot_x_vs_y*/ true, 
-//            /*plot_phase_space*/ true, /*plot_exact*/ true, /*linear*/ true);
-//    
-//    //Problems 5, 6, and 7
-//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
-//            /*nat_freq*/ 4, /*friction_coef*/ 15, /*driving_freq*/ 0, 
-//            /*driving_torque*/ 0, /*plot_x_vs_y*/ true, 
-//            /*plot_phase_space*/ true, /*plot_exact*/ true, /*linear*/ true);
-//    
-//    //Problems 10 - underdamped
-//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
-//            /*nat_freq*/ 4, /*friction_coef*/ 1, /*driving_freq*/ 3, 
-//            /*driving_torque*/ 0.5, /*plot_x_vs_y*/ true, 
-//            /*plot_phase_space*/ true, /*plot_exact*/ false, /*linear*/ true);
-//    
-//    //Problems 10 - critically damped
-//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
-//            /*nat_freq*/ 4, /*friction_coef*/ 8, /*driving_freq*/ 3, 
-//            /*driving_torque*/ 0.5, /*plot_x_vs_y*/ true, 
-//            /*plot_phase_space*/ true, /*plot_exact*/ false, /*linear*/ true);
-//    
-//    //Problems 10 - overdamped
-//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
-//            /*nat_freq*/ 4, /*friction_coef*/ 15, /*driving_freq*/ 3, 
-//            /*driving_torque*/ 0.5, /*plot_x_vs_y*/ true, 
-//            /*plot_phase_space*/ true, /*plot_exact*/ false, /*linear*/ true);
-//    
-//    //Problem 11
-//    various_ampl_vs_freq(/*theta0*/0.2, /*ang_v0*/0, /*dt*/0.001, /*nat_freq*/6, 
-//        /*friction_coef*/{3, 12, 18}, /*d_driving_freq*/0.1, /*end_driving_freq*/20, 
-//        /*driving_torque*/4, /*plot*/true);
-//    
-//    //Problem 14
-//    shm_damped_driven(/*theta0*/3, /*ang_v0*/0, /*dt*/0.01, /*end_t*/10, 
-//        /*nat_freq*/5, /*friction_coef*/0, /*driving_freq*/0, 
-//        /*driving_torque*/0, /*plot_x_vs_y*/true, 
-//        /*plot_phase_space*/false, /*plot_exact*/false, /*linear*/false);
-//    
-//    //Problem 15
-//    plot_lin_and_nonlin(/*theta0*/ 0.1, /*ang_v0*/ 0, /*dt*/ 0.01, 
-//       /*end_t*/ 20, /*nat_freq*/ 1, /*plot_phase_space*/ false, 
-//       /*plot_exact*/ false);
-//    
-//    //Problem 16
-//    plot_lin_and_nonlin(/*theta0*/ 3, /*ang_v0*/ 0, /*dt*/ 0.01, 
-//       /*end_t*/ 20, /*nat_freq*/ 1, /*plot_phase_space*/ false, 
-//       /*plot_exact*/ false);
-//    
+    //Problems 5, 6, and 7
+    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
+            /*nat_freq*/ 4, /*friction_coef*/ 15, /*driving_freq*/ 0, 
+            /*driving_torque*/ 0, /*plot_x_vs_y*/ true, 
+            /*plot_phase_space*/ true, /*plot_exact*/ true, /*linear*/ true);
+    
+    //Problems 10 - underdamped
+    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
+            /*nat_freq*/ 4, /*friction_coef*/ 1, /*driving_freq*/ 3, 
+            /*driving_torque*/ 0.5, /*plot_x_vs_y*/ true, 
+            /*plot_phase_space*/ true, /*plot_exact*/ false, /*linear*/ true);
+    
+    //Problems 10 - critically damped
+    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
+            /*nat_freq*/ 4, /*friction_coef*/ 8, /*driving_freq*/ 3, 
+            /*driving_torque*/ 0.5, /*plot_x_vs_y*/ true, 
+            /*plot_phase_space*/ true, /*plot_exact*/ false, /*linear*/ true);
+    
+    //Problems 10 - overdamped
+    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 20, 
+            /*nat_freq*/ 4, /*friction_coef*/ 15, /*driving_freq*/ 3, 
+            /*driving_torque*/ 0.5, /*plot_x_vs_y*/ true, 
+            /*plot_phase_space*/ true, /*plot_exact*/ false, /*linear*/ true);
+    
+    //Problem 11
+    various_ampl_vs_freq(/*theta0*/0.2, /*ang_v0*/0, /*dt*/0.001, /*nat_freq*/6, 
+        /*friction_coef*/{3, 12, 18}, /*d_driving_freq*/0.1, /*end_driving_freq*/20, 
+        /*driving_torque*/4, /*plot*/true);
+    
+    //Problem 14
+    shm_damped_driven(/*theta0*/3, /*ang_v0*/0, /*dt*/0.01, /*end_t*/10, 
+        /*nat_freq*/5, /*friction_coef*/0, /*driving_freq*/0, 
+        /*driving_torque*/0, /*plot_x_vs_y*/true, 
+        /*plot_phase_space*/false, /*plot_exact*/false, /*linear*/false);
+    
+    //Problem 15
+    plot_lin_and_nonlin(/*theta0*/ 0.1, /*ang_v0*/ 0, /*dt*/ 0.01, 
+       /*end_t*/ 20, /*nat_freq*/ 1, /*plot_phase_space*/ false, 
+       /*plot_exact*/ false);
+    
+    //Problem 16
+    plot_lin_and_nonlin(/*theta0*/ 3, /*ang_v0*/ 0, /*dt*/ 0.01, 
+       /*end_t*/ 20, /*nat_freq*/ 1, /*plot_phase_space*/ false, 
+       /*plot_exact*/ false);
+    
     //Problem 17 nonlinear
     period_vs_ampl(/*d_theta0*/ 0.1, /*ang_v0*/ 0, /*dt*/ 0.001, /*nat_freq*/ 1, 
         /*friction_coef*/ 0, /*driving_freq*/ 0, /*driving_torque*/ 0, 
