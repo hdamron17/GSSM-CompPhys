@@ -1,8 +1,7 @@
 /**
- * Demo of sending data via temporary files.  The default is to send data to gnuplot directly
- * through stdin.
+ * Calculates pendulum behavior numerically using Leapfrog algorithm
  * 
- * Compile it with:
+ * Compile with:
  *   g++ -o main main.cpp -lboost_iostreams -lboost_system -lboost_filesystem
  * Or use the makefile attached to this project
  */
@@ -17,19 +16,26 @@
 
 using namespace std;
 
+/**
+ * Calculates if the difference between two args is less than epsilon
+ * @param arg1 First argument
+ * @param arg2 Second argument
+ * @param epsilon Small number to account for numerical error
+ * @return Returns true if numbers are close, else false
+ */
 bool is_close(double arg1, double arg2, double epsilon=numeric_limits<double>::epsilon() ) {
     return abs(arg1 - arg2) < epsilon;
 }
 
 /**
- * Derivative of omega (angular velocity)
- * @param theta: anglular position
- * @param ang_v: angular velocity
- * @param t: time from beginning of driving force oscillation 
- * @param nat_freq: natural frequency of ideal pendulum
- * @param friction_coef: coefficient of friction force
- * @param driving_freq: frequency of driving force
- * @param driving_torque: torque due to driving force
+ * Derivative of omega for linear estimation (angular velocity)
+ * @param theta anglular position
+ * @param ang_v angular velocity
+ * @param t time from beginning of driving force oscillation 
+ * @param nat_freq natural frequency of ideal pendulum
+ * @param friction_coef coefficient of friction force
+ * @param driving_freq frequency of driving force
+ * @param driving_torque torque due to driving force
  * @return returns instantaneous acceleration
  */
 double dw_dt(double theta, double ang_v, double t, double nat_freq, 
@@ -50,16 +56,16 @@ double dw_dt_nonlinear(double theta, double nat_freq) {
 
 /**
  * Calculates exact damped driven pendulum solution
- * Note: initial angular velocity must be zero
- * @param theta0: initial position
- * @param dt: time delta (s)
- * @param end_t: end time of calculation (s)
- * @param nat_freq: natural frequency of ideal pendulum
- * @param friction_coef: coefficient of friction force
- * @param driving_freq: frequency of driving force
- * @param driving_torque: torque due to driving force
- * @param plot_x_vs_t: if True, plots position vs time
- * @return: returns vector containing tuples (time, angular position)
+ * Note initial angular velocity must be zero
+ * @param theta0 initial position
+ * @param dt time delta (s)
+ * @param end_t end time of calculation (s)
+ * @param nat_freq natural frequency of ideal pendulum
+ * @param friction_coef coefficient of friction force
+ * @param driving_freq frequency of driving force
+ * @param driving_torque torque due to driving force
+ * @param plot_x_vs_t if True, plots position vs time
+ * @return returns vector containing tuples (time, angular position)
  */
 vector<tuple<double, double>> exact_damped_driven(double theta0,
         double dt, double end_t, double nat_freq, 
@@ -105,15 +111,15 @@ vector<tuple<double, double>> exact_damped_driven(double theta0,
 }
 
 /**
- * Calculates damped driven pendulum solution by Leapfrog algorithm
- * @param previous: previous step (time, ang_position, ang_velocity)
- * @param dt: time delta (s)
- * @param nat_freq: natural frequency of ideal pendulum
- * @param friction_coef: coefficient of friction force
- * @param driving_freq: frequency of driving force
- * @param driving_torque: torque due to driving force
- * @param linear: plots linear estimation if true, otherwise nonlinear
- * @return: returns tuple (time, ang_position, ang_velocity)
+ * Calculates one step of damped driven pendulum solution by Leapfrog algorithm
+ * @param prev previous step (time, ang_position, ang_velocity)
+ * @param dt time delta (s)
+ * @param nat_freq natural frequency of ideal pendulum
+ * @param friction_coef coefficient of friction force
+ * @param driving_freq frequency of driving force
+ * @param driving_torque torque due to driving force
+ * @param linear plots linear estimation if true, otherwise nonlinear
+ * @return returns tuple (time, ang_position, ang_velocity)
  */
 tuple<double,double,double> one_step(tuple<double,double,double> prev,double dt, 
         double nat_freq, double friction_coef, double driving_freq, 
@@ -150,19 +156,19 @@ tuple<double,double,double> one_step(tuple<double,double,double> prev,double dt,
 
 /**
  * Calculates damped driven pendulum solution by Leapfrog algorithm
- * @param theta0: initial position
- * @param ang_v0: initial angular velocity
- * @param dt: time delta (s)
- * @param end_t: end time of calculation (s)
- * @param nat_freq: natural frequency of ideal pendulum
- * @param friction_coef: coefficient of friction force
- * @param driving_freq: frequency of driving force
- * @param driving_torque: torque due to driving force
- * @param linear: plots linear estimation if true, otherwise nonlinear
- * @param plot_x_vs_t: if True, plots position vs time
- * @param plot_phase_space: if True, plots angular velocity vs position
- * @param plot_exact: if true, plots exact solution (only valid with not damping/driving)
- * @return: returns vector containing tuples (time, position, angular velocity)
+ * @param theta0 initial position
+ * @param ang_v0 initial angular velocity
+ * @param dt time delta (s)
+ * @param end_t end time of calculation (s)
+ * @param nat_freq natural frequency of ideal pendulum
+ * @param friction_coef coefficient of friction force
+ * @param driving_freq frequency of driving force
+ * @param driving_torque torque due to driving force
+ * @param plot_x_vs_t if True, plots position vs time
+ * @param plot_phase_space if True, plots angular velocity vs position
+ * @param plot_exact if true, plots exact solution (only valid with not damping/driving)
+ * @param linear plots linear estimation if true, otherwise nonlinear
+ * @return returns vector containing tuples (time, position, angular velocity)
  */
 vector<tuple<double, double, double>> shm_damped_driven(double theta0, 
         double ang_v0, double dt, double end_t, double nat_freq, 
@@ -214,6 +220,8 @@ vector<tuple<double, double, double>> shm_damped_driven(double theta0,
 /**
  * Calculates if deque is from stable oscillation
  * @param turns Queue containing (position, time) for function turns
+ * @param epsilon Epsilon value for is_close in calculation (relies on precision
+ *      of numerical estimation)
  * @return Returns true if even indexes are all same and odd indexes are same
  */
 bool _stable(deque<tuple<double,double>> turns, double epsilon) {
@@ -233,6 +241,11 @@ bool _stable(deque<tuple<double,double>> turns, double epsilon) {
     return true;
 }
 
+/**
+ * Calculates average amplitude and frequency based on deque of turn points
+ * @param turns deque of points where graph turns
+ * @return Returns average amplitude and velocity in tuple
+ */
 tuple<double,double> _calc_ampl_freq(deque<tuple<double,double>> turns) {
     //Note: deque should be even size but is not required
     int i = 0;
@@ -258,18 +271,18 @@ tuple<double,double> _calc_ampl_freq(deque<tuple<double,double>> turns) {
 }
 
 /**
- * Calculates amplitude from frequency
- * @param theta0: initial position
- * @param ang_v0: initial angular velocity
- * @param dt: time delta (s)
- * @param nat_freq: natural frequency of ideal pendulum
- * @param friction_coef: coefficient of friction force
- * @param driving_freq: frequency of driving force
- * @param driving_torque: torque due to driving force
- * @param linear: if true, plots linear estimation, else nonlinear
- * @param linear_time: time after which velocity can be confirmed zero
- * @param loops_precision: number wavelengths before confirming amplitude
- * @return: returns tuple with (amplitude, frequency) at long time
+ * Calculates amplitude and frequency ratio of numerical solution
+ * @param theta0 initial position
+ * @param ang_v0 initial angular velocity
+ * @param dt time delta (s)
+ * @param nat_freq natural frequency of ideal pendulum
+ * @param friction_coef coefficient of friction force
+ * @param driving_freq frequency of driving force
+ * @param driving_torque torque due to driving force
+ * @param linear if true, plots linear estimation, else nonlinear
+ * @param linear_time time after which velocity can be confirmed zero
+ * @param loops_precision number wavelengths before confirming amplitude
+ * @return returns tuple with (amplitude, frequency ratio) at long time
  */
 tuple<double,double> _ampl_freq(double theta0, 
         double ang_v0, double dt, double nat_freq, 
@@ -312,16 +325,16 @@ tuple<double,double> _ampl_freq(double theta0,
 
 /**
  * Calculates amplitude as a function of frequency ratio
- * @param theta0: initial position
- * @param ang_v0: initial angular velocity
- * @param dt: time delta (s)
- * @param nat_freq: natural frequency of ideal pendulum
- * @param friction_coef: coefficient of friction force
- * @param d_driving_freq: step for frequencies of driving force
- * @param end_driving_freq: largest driving frequency
- * @param driving_torque: torque due to driving force
- * @param plot: if true, plots amplitude vs frequency
- * @return: returns vector containing tuples (frequency, amplitude)
+ * @param theta0 initial position
+ * @param ang_v0 initial angular velocity
+ * @param dt time delta (s)
+ * @param nat_freq natural frequency of ideal pendulum
+ * @param friction_coef coefficient of friction force
+ * @param d_driving_freq step for frequencies of driving force
+ * @param end_driving_freq largest driving frequency
+ * @param driving_torque torque due to driving force
+ * @param plot if true, plots amplitude vs frequency
+ * @return returns vector containing tuples (frequency, amplitude)
  */
 vector<tuple<double,double>> ampl_vs_freq(double theta0, 
         double ang_v0, double dt, double nat_freq, 
@@ -350,16 +363,17 @@ vector<tuple<double,double>> ampl_vs_freq(double theta0,
 
 /**
  * Calculates amplitude as a function of frequency ratio for various dampings
- * @param theta0: initial position
- * @param ang_v0: initial angular velocity
- * @param dt: time delta (s)
- * @param nat_freq: natural frequency of ideal pendulum
- * @param friction_coef: array of damping damping coefficients to plot
- * @param d_driving_freq: step for frequencies of driving force
- * @param end_driving_freq: largest driving frequency
- * @param driving_torque: torque due to driving force
- * @param plot: if true, plots amplitude vs frequency
- * @return: returns vector containing tuples (friction coeff, ampl_vs_freq data)
+ * @param theta0 initial position
+ * @param ang_v0 initial angular velocity
+ * @param dt time delta (s)
+ * @param nat_freq natural frequency of ideal pendulum
+ * @param friction_coef array of damping damping coefficients to plot
+ * @param d_driving_freq step for frequencies of driving force
+ * @param end_driving_freq largest driving frequency
+ * @param driving_torque torque due to driving force
+ * @param plot if true, plots amplitude vs frequency
+ * @param colors string of colors to be sent to gnuplot in form "rgb \"color\""
+ * @return returns vector containing tuples (friction coeff, ampl_vs_freq data)
  */
 map<double,vector<tuple<double,double>>> various_ampl_vs_freq(double theta0, 
         double ang_v0, double dt, double nat_freq, 
@@ -399,16 +413,16 @@ map<double,vector<tuple<double,double>>> various_ampl_vs_freq(double theta0,
 
 /**
  * Calculates amplitude as a function of frequency ratio for various dampings
- * @param d_theta0: step size for initial position
- * @param ang_v0: initial angular velocity
- * @param dt: time delta (s)
- * @param nat_freq: natural frequency of ideal pendulum
- * @param friction_coef: array of damping damping coefficients to plot
- * @param driving_freq: frequency for driving force
- * @param driving_torque: torque due to driving force
- * @param plot: if true, plots amplitude vs frequency
- * @param linear: if true, plots linear estimation, else nonlinear
- * @return: returns vector containing tuples (friction coeff, ampl_vs_freq data)
+ * @param d_theta0 step size for initial position
+ * @param ang_v0 initial angular velocity
+ * @param dt time delta (s)
+ * @param nat_freq natural frequency of ideal pendulum
+ * @param friction_coef array of damping damping coefficients to plot
+ * @param driving_freq frequency for driving force
+ * @param driving_torque torque due to driving force
+ * @param plot if true, plots amplitude vs frequency
+ * @param linear if true, plots linear estimation, else nonlinear
+ * @return returns vector containing tuples (friction coeff, ampl_vs_freq data)
  */
 vector<tuple<double,double>> period_vs_ampl(double d_theta0, 
         double ang_v0, double dt, double nat_freq,
@@ -442,17 +456,17 @@ vector<tuple<double,double>> period_vs_ampl(double d_theta0,
 
 /**
  * Plots linear and nonlinear together
- * @param theta0: initial position
- * @param ang_v0: initial angular velocity
- * @param dt: time delta (s)
- * @param end_t: end time of calculation (s)
- * @param nat_freq: natural frequency of ideal pendulum
- * @param friction_coef: coefficient of friction force
- * @param driving_freq: frequency of driving force
- * @param driving_torque: torque due to driving force
- * @param plot_x_vs_t: if True, plots position vs time
- * @param plot_phase_space: if True, plots angular velocity vs position
- * Note: does not return the data, only plots it
+ * @param theta0 initial position
+ * @param ang_v0 initial angular velocity
+ * @param dt time delta (s)
+ * @param end_t end time of calculation (s)
+ * @param nat_freq natural frequency of ideal pendulum
+ * @param friction_coef coefficient of friction force
+ * @param driving_freq frequency of driving force
+ * @param driving_torque torque due to driving force
+ * @param plot_x_vs_t if True, plots position vs time
+ * @param plot_phase_space if True, plots angular velocity vs position
+ * Note does not return the data, only plots it
  */
 void plot_lin_and_nonlin(double theta0, double ang_v0, double dt, 
        double end_t, double nat_freq, bool plot_phase_space=false, 
