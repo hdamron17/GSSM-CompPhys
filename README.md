@@ -6,7 +6,7 @@ pendulum and plots graphs of position, phase space plots, and a plot of
 amplitude vs. frequency. It then plots the motion of a nonlinear, non-damped, 
 non-driven pendulum, which also does not exhibit chaos. 
 
-This project can be found on (Github)[
+This project can be found on [Github](https://github.com/hdamron17/Simple-Ideal-Pendulum).
 
 ## Usage
 
