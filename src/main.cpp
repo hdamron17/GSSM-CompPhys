@@ -446,7 +446,8 @@ vector<tuple<double,double>> period_vs_ampl(double d_theta0,
            << "set xlabel \'Amplitude (rad)\'\n"
            << "unset key\n";
         if(is_close(get<0>(ret.back()), get<0>(ret.front()))) {
-            gp << "set xrange [" << M_PI-0.1 << ":" << M_PI+0.1 << "]\n";
+            double value = get<0>(ret.back());
+            gp << "set xrange [" << value-0.1 << ":" << value+0.1 << "]\n";
             //point out of view to give series a domain
             ret.push_back(make_tuple(get<0>(ret.back())+0.001, get<1>(ret.back())));
         }
@@ -580,19 +581,12 @@ int main() {
        /*plot_exact*/ false);
     
     //Problem 17 nonlinear
-    period_vs_ampl(/*d_theta0*/ 0.1, /*ang_v0*/ 0, /*dt*/ 0.01, /*nat_freq*/ 1, 
+    period_vs_ampl(/*d_theta0*/ 0.1, /*ang_v0*/ 0, /*dt*/ 0.01, /*nat_freq*/ 2, 
         /*friction_coef*/ 0, /*driving_freq*/ 0, /*driving_torque*/ 0, 
         /*linear*/ false, /*plot*/ true);   
     
     //Problem 17 linear
-    period_vs_ampl(/*d_theta0*/ 0.1, /*ang_v0*/ 0, /*dt*/ 0.01, /*nat_freq*/ 1, 
+    period_vs_ampl(/*d_theta0*/ 0.1, /*ang_v0*/ 0, /*dt*/ 0.01, /*nat_freq*/ 2, 
         /*friction_coef*/ 0, /*driving_freq*/ 0, /*driving_torque*/ 0, 
         /*linear*/ true, /*plot*/ true);
-        
-#ifdef _WIN32
-    // For Windows, prompt for a keystroke before the Gnuplot object goes out of scope so that
-    // the gnuplot window doesn't get closed.
-    std::cout << "Press enter to exit." << std::endl
-    std::cin.get();
-#endif
 }
