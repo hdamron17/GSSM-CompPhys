@@ -452,6 +452,7 @@ vector<tuple<double,double>> period_vs_ampl(double d_theta0,
         }
         gp << "plot" << gp.file1d(ret) << "with lines lt rgb \"blue\"\n";
     }
+    return ret;
 }
 
 /**
@@ -492,7 +493,7 @@ void plot_lin_and_nonlin(double theta0, double ang_v0, double dt,
     }
     gp << gp.file1d(nonlin) << "with lines lt rgb \"red\" title "
        << "\"Nonlinear\"\n";
-   if(plot_phase_space) {
+    if(plot_phase_space) {
        vector<pair<double,double>> lin_phase_space; //(position, velocity)
        vector<pair<double,double>> nonlin_phase_space;
        for(tuple<double,double,double> point : lin) {
@@ -579,12 +580,12 @@ int main() {
        /*plot_exact*/ false);
     
     //Problem 17 nonlinear
-    period_vs_ampl(/*d_theta0*/ 0.1, /*ang_v0*/ 0, /*dt*/ 0.001, /*nat_freq*/ 1, 
+    period_vs_ampl(/*d_theta0*/ 0.1, /*ang_v0*/ 0, /*dt*/ 0.01, /*nat_freq*/ 1, 
         /*friction_coef*/ 0, /*driving_freq*/ 0, /*driving_torque*/ 0, 
         /*linear*/ false, /*plot*/ true);   
     
     //Problem 17 linear
-    period_vs_ampl(/*d_theta0*/ 0.1, /*ang_v0*/ 0, /*dt*/ 0.001, /*nat_freq*/ 1, 
+    period_vs_ampl(/*d_theta0*/ 0.1, /*ang_v0*/ 0, /*dt*/ 0.01, /*nat_freq*/ 1, 
         /*friction_coef*/ 0, /*driving_freq*/ 0, /*driving_torque*/ 0, 
         /*linear*/ true, /*plot*/ true);
         
