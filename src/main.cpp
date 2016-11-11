@@ -187,20 +187,59 @@ vector<tuple<double, double, double>> shm_damped_driven(double theta0,
 
 vector<tuple<double,vector<double>>> bifurcation(double dt, double end_t, 
         double nat_freq, double friction_coef, double driving_freq, 
-        double d_driving_torque, double end_driving_torque, double theta0, 
-        double ang_v0, bool linear=false, string ofile="", bool plot=false) {
-    //TODO Figure out parameters and implement; also doxygen comment
+        double d_driving_torque, double end_driving_torque, double theta0=0, 
+        double ang_v0=0, int points=10, bool linear=false, string ofile="", 
+        bool plot=false) {
+    int count = int(round(driving_freq / dt)); //Corrected number of time steps in driving_freq
+    dt = driving_freq / count; //Corrects to put in phase with driving_freq
     
+    vector<tuple<double,vector<double>>> data;
+    
+    for(double driving_torque = 0; driving_torque <= end_driving_torque; driving_torque += d_driving_torque) {
+        vector<tuple<double,double,double>> series = shm_damped_driven(theta0, ang_v0, 
+                dt, end_t, nat_freq, friction_coef, driving_freq, 
+                driving_torque, false, false, linear, "");
+        vector<double> points_of_interest;
+        int counter = 0;
+        for(int i = series.size() - 1; i > 0 && counter < points; i++) {
+            points_of_interest.push_back(get<1>(series[i]));
+        }
+        data.push_back(make_tuple(driving_torque, points_of_interest));
+    }
+    cout << "stuff\n"; //TODO remove
+    if(plot) {
+        vector<tuple<double,double>> modified; //expands multiple points to one driving_torque
+        for(auto series : data) {
+            for(double value : get<1>(series)) {
+                modified.push_back(make_tuple(get<0>(series), value));
+            }
+        }
+        
+        Gnuplot gp;
+        gp << "set autoscale xy\n"
+           << "set title \'Position vs Driving Torque\'\n"
+           << "set ylabel \'Position at long time (radians)\'\n"
+           << "set xlabel \'Driving Torque (s)\'\n"
+           << "unset key\n"
+           << "plot" << gp.file1d(modified) << "with points lc rgb \"red\" pt 7 ps 0.1\n";
+    }
+    return data;
 }
 
 /* 
  * 
  */
 int main(int argc, char** argv) {
-    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.001, /*end_t*/ 600, 
-            /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
-            /*driving_torque*/ 1.2, /*plot_x_vs_y*/ true, 
-            /*plot_phase_space*/ true, /*linear*/ false, /*output_file*/ "");
+//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.001, /*end_t*/ 600, 
+//            /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
+//            /*driving_torque*/ 1.2, /*plot_x_vs_y*/ true, 
+//            /*plot_phase_space*/ true, /*linear*/ false, /*output_file*/ "");
+    
+    bifurcation(/*dt*/ 0.01, /*end_t*/ 200, 
+        /*nat_freq*/ 1, /*friction_coef*/ 0.4, /*driving_freq*/ 2/3.0, 
+        /*d_driving_torque*/ 0.1, /*end_driving_torque*/ 4, /*theta0*/ 0, 
+        /*ang_v0*/ 0, /*points*/ 10, /*linear*/ false, /*ofile*/ "", /*plot*/ true);
+    
     return 0;
     ///////TODO Figure out why this seems to be exhibiting non-chaos
 }
