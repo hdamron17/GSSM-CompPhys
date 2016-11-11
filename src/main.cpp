@@ -10,6 +10,7 @@
 #include <iostream>
 #include <vector>
 #include <tuple>
+#include <fstream>
 #include "gnuplot-iostream.h"
 
 using namespace std;
@@ -23,6 +24,52 @@ using namespace std;
  */
 bool is_close(double arg1, double arg2, double epsilon=numeric_limits<double>::epsilon() ) {
     return abs(arg1 - arg2) < epsilon;
+}
+
+/**
+ * Writes 2 column data to file
+ * @param data data to write
+ * @param fname string path to file (defaults to base of project)
+ * @param delimiter string to place between data entries
+ * @return returns true if write is successful
+ */
+template <typename num> bool write_csv(vector<tuple<num,num>> data, 
+        tuple<string,string> header, string fname, string delimiter=",") {
+    ofstream out(fname);
+    if(out) {
+        out << get<0>(header) << delimiter << get<1>(header) << endl;
+        for(auto point : data) {
+            out << get<0>(point) << delimiter << get<1>(point) << endl;
+        }
+        out.close();
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * Writes 2 column data to file
+ * @param data data to write
+ * @param fname string path to file (defaults to base of project)
+ * @param delimiter string to place between data entries
+ * @return returns true if write is successful
+ */
+template <typename num> bool write_csv(vector<tuple<num,num,num>> data, 
+        tuple<string,string,string> header, string fname, string delimiter=","){
+    ofstream out(fname, ios::out);
+    if(out) {
+        out << get<0>(header) << delimiter << get<1>(header) << delimiter 
+                                                    << get<2>(header) << endl;
+        for(auto point : data) {
+            out << get<0>(point) << delimiter << get<1>(point) << delimiter 
+                                                    << get<2>(point) << endl;
+        }
+        out.close();
+        return true;
+    } else {
+        return false;
+    }
 }
 
 /**
@@ -79,63 +126,6 @@ tuple<double,double,double> one_step(tuple<double,double,double> prev,double dt,
     return make_tuple(time_new, theta_new, ang_v_new);
 }
 
-//////TODO REMOVE EXACT SOLUTION
-/**
- * Calculates exact damped driven pendulum solution
- * Note initial angular velocity must be zero
- * @param theta0 initial position
- * @param dt time delta (s)
- * @param end_t end time of calculation (s)
- * @param nat_freq natural frequency of ideal pendulum
- * @param friction_coef coefficient of friction force
- * @param driving_freq frequency of driving force
- * @param driving_torque torque due to driving force
- * @param plot_x_vs_t if True, plots position vs time
- * @return returns vector containing tuples (time, angular position)
- */
-vector<tuple<double, double>> exact_damped_driven(double theta0,
-        double dt, double end_t, double nat_freq, 
-        double friction_coef, double driving_freq,  double driving_torque, 
-        bool plot_x_vs_time) {
-    vector<tuple<double,double>> data; //(t, theta)
-    data.push_back(make_tuple(0, theta0));
-    while(get<0>(data.back()) < end_t) {
-        tuple<double,double> last = data.back();
-        double t_new = get<0>(last) + dt;
-        if(is_close(friction_coef, 2 * nat_freq)) {
-            //Critically damped
-            double temp = friction_coef * t_new / 2;
-            double theta_new = theta0 * (1 + temp) * exp(-temp);
-            data.push_back(make_tuple(t_new, theta_new));
-        } else if(friction_coef < 2 * nat_freq) {
-            //Underdamped
-            double temp = sqrt(pow(nat_freq,2) - pow(friction_coef,2) / 4);
-            double theta_new = theta0 * exp(-friction_coef * t_new / 2) * \
-                                (cos(temp * t_new) + friction_coef / 2 / temp \
-                                * sin(temp * t_new));
-            data.push_back(make_tuple(t_new, theta_new));
-        } else {
-            //Overdamped
-            double temp = sqrt(pow(friction_coef,2) / 4 - pow(nat_freq,2));
-            double theta_new = theta0 * exp(-friction_coef * t_new / 2) * \
-                                (cosh(temp * t_new) + friction_coef / 2 / temp \
-                                * sinh(temp * t_new));
-            data.push_back(make_tuple(t_new, theta_new));
-        }
-    }
-    
-    if(plot_x_vs_time) {
-        Gnuplot gp;
-        gp << "set autoscale xy\n"
-           << "set title \'Position vs. Time for Damped Driven Pendulum\'\n"
-           << "set ylabel \'Position (radians)\'\n"
-           << "set xlabel \'Time (s)\'\n"
-           << "unset key\n"
-           << "plot" << gp.file1d(data) << "with points lc rgb \"red\" pt 7 ps 0.1\n";
-    }
-    return data;
-}
-
 /**
  * Calculates damped driven pendulum solution by Leapfrog algorithm
  * @param theta0 initial position
@@ -150,13 +140,14 @@ vector<tuple<double, double>> exact_damped_driven(double theta0,
  * @param plot_phase_space if True, plots angular velocity vs position
  * @param plot_exact if true, plots exact solution (only valid with not damping/driving)
  * @param linear plots linear estimation if true, otherwise nonlinear
+ * @param ofile name of file for output
  * @return returns vector containing tuples (time, position, angular velocity)
  */
 vector<tuple<double, double, double>> shm_damped_driven(double theta0, 
         double ang_v0, double dt, double end_t, double nat_freq, 
         double friction_coef, double driving_freq,  double driving_torque,
         bool plot_x_vs_time=false, bool plot_phase_space=false, 
-        bool plot_exact=false, bool linear=true) {
+        bool linear=true, string ofile="") {
     vector<tuple<double,double,double>> data; //formatted as (t, theta, ang_v)
     data.push_back(make_tuple(0, theta0, ang_v0));
     while(get<0>(data.back()) < end_t) {
@@ -187,25 +178,29 @@ vector<tuple<double, double, double>> shm_damped_driven(double theta0,
            << "unset key\n"
            << "plot" << gp.file1d(phase_space) << "with points lc rgb \"red\" pt 7 ps 0.1\n";
     }
+    
+    if(ofile != "") {
+        write_csv<double>(data, make_tuple("t","theta","ang_v"), ofile);
+    }
     return data;
 }
 
-vector<tuple<double,vector<double>>> bifurcation(double theta0, 
-        double ang_v0, double dt, double end_t, double nat_freq, 
-        double friction_coef, double driving_freq,  double driving_torque,
-        bool plot_x_vs_time=false, bool plot_phase_space=false, 
-        bool plot_exact=false, bool linear=true) {
+vector<tuple<double,vector<double>>> bifurcation(double dt, double end_t, 
+        double nat_freq, double friction_coef, double driving_freq, 
+        double d_driving_torque, double end_driving_torque, double theta0, 
+        double ang_v0, bool linear=false, string ofile="", bool plot=false) {
     //TODO Figure out parameters and implement; also doxygen comment
+    
 }
 
-/*
+/* 
  * 
  */
 int main(int argc, char** argv) {
-    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.01, /*end_t*/ 600, 
+    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.001, /*end_t*/ 600, 
             /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
-            /*driving_torque*/ 1.2, /*plot_x_vs_y*/ false, 
-            /*plot_phase_space*/ true, /*plot_exact*/ false, /*linear*/ false);
+            /*driving_torque*/ 1.2, /*plot_x_vs_y*/ true, 
+            /*plot_phase_space*/ true, /*linear*/ false, /*output_file*/ "");
     return 0;
     ///////TODO Figure out why this seems to be exhibiting non-chaos
 }
