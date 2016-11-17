@@ -288,7 +288,7 @@ int main() {
         /*start_driving_torque*/ 0, /*theta0*/ 0.3, /*ang_v0*/ 0, /*points*/ 10, 
         /*linear*/ false, /*ofile*/ "", /*plot*/ true, /*zoom*/ {});
     
-    // Problem 2 - Modified Friction Coefficient    
+    // Problem 2 - Modified Friction Coefficient
     bifurcation(/*dt*/ 0.01, /*end_t*/ 400, 
         /*nat_freq*/ 1, /*friction_coef*/ 1, /*driving_freq*/ 2/3.0, 
         /*d_driving_torque*/ 0.01, /*end_driving_torque*/ 4, 
