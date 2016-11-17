@@ -7,8 +7,8 @@ DOXYFILE_ENCODING      = UTF-8
 PROJECT_NAME           = "Non-Chaotic Pendulum"
 PROJECT_NUMBER         = 1.0
 PROJECT_BRIEF          = "Numerical Integration of Pendulum Motion using Leapfrog Algorithm"
-PROJECT_LOGO           = "/home/hdamron1594/Dropbox/development/CompPhysWorkspace/C++ Simple Ideal Pendulum/pendulum-small.jpg"
-OUTPUT_DIRECTORY       = "/home/hdamron1594/Dropbox/development/CompPhysWorkspace/C++ Simple Ideal Pendulum/doc"
+PROJECT_LOGO           = "/home/hdamron1594/Dropbox/development/CompPhysWorkspace/Pendulum-Chaos/pendulum-small.jpg"
+OUTPUT_DIRECTORY       = "/home/hdamron1594/Dropbox/development/CompPhysWorkspace/Pendulum-Chaos/doc"
 CREATE_SUBDIRS         = NO
 ALLOW_UNICODE_NAMES    = NO
 OUTPUT_LANGUAGE        = English
@@ -111,8 +111,8 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # Configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = "/home/hdamron1594/Dropbox/development/CompPhysWorkspace/C++ Simple Ideal Pendulum/src" \
-                         "/home/hdamron1594/Dropbox/development/CompPhysWorkspace/C++ Simple Ideal Pendulum/README.md"
+INPUT                  = "/home/hdamron1594/Dropbox/development/CompPhysWorkspace/Pendulum-Chaos/src" \
+                         "/home/hdamron1594/Dropbox/development/CompPhysWorkspace/Pendulum-Chaos/README.md"
 INPUT_ENCODING         = UTF-8
 FILE_PATTERNS          = *.c \
                          *.cc \
@@ -201,7 +201,7 @@ HTML_HEADER            =
 HTML_FOOTER            = 
 HTML_STYLESHEET        = 
 HTML_EXTRA_STYLESHEET  = 
-HTML_EXTRA_FILES       = "/home/hdamron1594/Dropbox/development/CompPhysWorkspace/C++ Simple Ideal Pendulum/README.md"
+HTML_EXTRA_FILES       = "/home/hdamron1594/Dropbox/development/CompPhysWorkspace/Pendulum-Chaos/README.md"
 HTML_COLORSTYLE_HUE    = 220
 HTML_COLORSTYLE_SAT    = 100
 HTML_COLORSTYLE_GAMMA  = 80
