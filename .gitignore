@@ -2,17 +2,10 @@
 ##### Project files
 build/
 dist/
-docs/
-nbproject/
+doc/
 
 ##### C++ Object Files
 *.o
 *.o.d
 
-<<<<<<< HEAD
-##### Compressed Versions
 *.tar.gz
-=======
-##### Image Files
-*.png
->>>>>>> mission-impossible
