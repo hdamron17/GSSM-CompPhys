@@ -1,11 +1,10 @@
 /**
- * Calculates pendulum behavior numerically using Leapfrog algorithm
+ * Calculates chaotic pendulum behavior numerically using Leapfrog algorithm
  * 
  * Compile with:
  *   g++ -o main main.cpp -lboost_iostreams -lboost_system -lboost_filesystem
  * Or use the makefile attached to this project
  */
-/////TODO Actual name for project
 
 #include <iostream>
 #include <vector>
@@ -49,7 +48,7 @@ template <typename num> bool write_csv(vector<tuple<num,num>> data,
 }
 
 /**
- * Writes 2 column data to file
+ * Writes 3 column data to file
  * @param data data to write
  * @param fname string path to file (defaults to base of project)
  * @param delimiter string to place between data entries
@@ -186,25 +185,49 @@ vector<tuple<double, double, double>> shm_damped_driven(double theta0,
 }
 
 //zoom = (x,y,w,h)
+/**
+ * Creates a bifurcation diagram of damped, driven, nonlinear pendulum
+ * @param dt Time step
+ * @param end_t End time for each run
+ * @param nat_freq Natural frequency of pendulum ( sqrt(g/l) )
+ * @param friction_coef Coefficient of friction
+ * @param driving_freq Driving frequency
+ * @param d_driving_torque Step between each driving frequency on plot
+ * @param end_driving_torque Endpoint for driving frequency
+ * @param start_driving_torque Starting point for driving torque
+ *      (must be smaller than driving torque)
+ * @param theta0 Starting angular position (should not affect plot)
+ * @param ang_v0 Starting angular velocity (should not affect plot)
+ * @param points Number of points included for each iteration
+ * @param linear If true, plots with linear estimation, else nonlinear
+ * @param ofile File name to hold output
+ * @param plot If true, plots to Gnuplot
+ * @param zoom Numerous zoom with dimensions (x, y, width, height)
+ * @return Returns vector containing the data of the plot in the form 
+ *      [ (driving_torque, [positions at long time...] ) ]
+ */
 vector<tuple<double,vector<double>>> bifurcation(double dt, double end_t, 
         double nat_freq, double friction_coef, double driving_freq, 
-        double d_driving_torque, double end_driving_torque, double theta0=0, 
+        double d_driving_torque, double end_driving_torque, double start_driving_torque, double theta0=0, 
         double ang_v0=0, int points=10, bool linear=false, string ofile="", 
-        bool plot=false, vector<tuple<double,double,double,double>> *zoom=nullptr) {
+        bool plot=false, vector<tuple<double,double,double,double>> zoom={}) {
     
     vector<tuple<double,vector<double>>> data;
     
-    for(double driving_torque = 0; driving_torque <= end_driving_torque; driving_torque += d_driving_torque) {
+    for(double driving_torque = start_driving_torque; 
+            driving_torque <= end_driving_torque; 
+            driving_torque += d_driving_torque) {
         vector<tuple<double,double,double>> series = shm_damped_driven(theta0, ang_v0, 
                 dt, end_t, nat_freq, friction_coef, driving_freq, 
                 driving_torque, false, false, linear, "");
         vector<double> points_of_interest;
         int counter = 0;
         bool direction = get<2>(series.back()) > 0; //Gets initial direction
-        for(auto iter = series.end(); iter > series.begin(); iter--) {
+        for(auto iter = series.end(); iter > series.begin() && counter < points; iter--) {
             if( (direction && get<2>(*iter) < 0) || (!direction && get<2>(*iter) > 0) ) {
                 points_of_interest.push_back(get<1>(*iter));
                 direction = !direction;
+                counter++;
             }
         }
         data.push_back(make_tuple(driving_torque, points_of_interest));
@@ -218,49 +241,84 @@ vector<tuple<double,vector<double>>> bifurcation(double dt, double end_t,
         }
         
         Gnuplot gp;
-        gp << "set multiplot\n"
-           << "set autoscale xy\n"
-           << "set title \'Position vs Driving Torque\'\n"
-           << "set ylabel \'Position at long time (radians)\'\n"
-           << "set xlabel \'Driving Torque (N*m)\'\n"
-           << "unset key\n"
-           << "plot" << gp.file1d(modified) << "with points lc rgb \"red\" pt 7 ps 0.1\n";
-        if(zoom != nullptr) {
-            int i = 1;
-            for(auto rect : *zoom) {
-                gp << "set title \'Bifurcation Zoom" << i << "\'\n"
-                   << "set xrange [" << get<0>(rect) << ":" 
-                        << get<0>(rect) + get<2>(rect) << "]\n"
-                   << "set yrange [" << get<1>(rect) << ":"
-                        << get<1>(rect) + get<3>(rect) << "]\n"
-                   << "plot" << gp.file1d(modified) << "with points lc rgb \"red\" pt 7 ps 0.1\n";
-                i++;
-            }
+        gp  << "set autoscale xy\n"
+            << "set title \'Position vs Driving Torque\'\n"
+            << "set ylabel \'Position at long time (radians)\'\n"
+            << "set xlabel \'Driving Torque (N*m)\'\n"
+            << "unset key\n"
+            << "plot" << gp.file1d(modified) << "with points lc rgb \"red\" pt 7 ps 0.1\n";
+        int i = 1;
+        for(auto rect : zoom) {
+            Gnuplot zoom_gp;
+            zoom_gp << "set title \'Bifurcation Zoom" << i << "\'\n"
+                << "set ylabel \'Position at long time (radians)\'\n"
+                << "set xlabel \'Driving Torque (N*m)\'\n"
+                << "set xrange [" << get<0>(rect) << ":" 
+                     << get<0>(rect) + get<2>(rect) << "]\n"
+                << "set yrange [" << get<1>(rect) << ":"
+                     << get<1>(rect) + get<3>(rect) << "]\n"
+                << "unset key\n"
+                << "plot" << zoom_gp.file1d(modified) << "with points lc rgb \"red\" pt 7 ps 0.1\n";
+            i++;
         }
-        gp << "unset multiplot\n";
     }
     return data;
 }
 
 /* 
- * 
+ * Constructs a lot of plot and spams the screen
  */
-int main(int argc, char** argv) {
-//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.001, /*end_t*/ 600, 
-//            /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
-//            /*driving_torque*/ 0.001, /*plot_x_vs_y*/ true, 
-//            /*plot_phase_space*/ true, /*linear*/ false, /*output_file*/ "");
+int main() {
+    // Problem 1
+    shm_damped_driven(/*theta0*/ 0.3, /*ang_v0*/ 0, /*dt*/ 0.001, /*end_t*/ 100, 
+            /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
+            /*driving_torque*/ 1.6, /*plot_x_vs_y*/ true, 
+            /*plot_phase_space*/ true, /*linear*/ false, /*output_file*/ "");
     
-    vector<tuple<double,double,double,double>> zoom = {
-        make_tuple(0,3,1,1)
-    };
+    // Problem 3 - Modified initial conditions position vs time plot
+    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.001, /*end_t*/ 100, 
+            /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
+            /*driving_torque*/ 1.6, /*plot_x_vs_y*/ true, 
+            /*plot_phase_space*/ true, /*linear*/ false, /*output_file*/ "");
+    
+    // Problem 2 - Bifurcation Base Plot
+    bifurcation(/*dt*/ 0.01, /*end_t*/ 400, 
+        /*nat_freq*/ 1, /*friction_coef*/ 0.5, /*driving_freq*/ 2/3.0, 
+        /*d_driving_torque*/ 0.01, /*end_driving_torque*/ 4, 
+        /*start_driving_torque*/ 0, /*theta0*/ 0.3, /*ang_v0*/ 0, /*points*/ 10, 
+        /*linear*/ false, /*ofile*/ "", /*plot*/ true, /*zoom*/ {});
+    
+    // Problem 2 - Modified Friction Coefficient    
+    bifurcation(/*dt*/ 0.01, /*end_t*/ 400, 
+        /*nat_freq*/ 1, /*friction_coef*/ 1, /*driving_freq*/ 2/3.0, 
+        /*d_driving_torque*/ 0.01, /*end_driving_torque*/ 4, 
+        /*start_driving_torque*/ 0, /*theta0*/ 0.3, /*ang_v0*/ 0, /*points*/ 10, 
+        /*linear*/ false, /*ofile*/ "", /*plot*/ true, /*zoom*/ {});
+                   
+    // Problem 3 - Modified initial conditions bifurcation
+    bifurcation(/*dt*/ 0.01, /*end_t*/ 400, 
+        /*nat_freq*/ 1, /*friction_coef*/ 0.5, /*driving_freq*/ 2/3.0, 
+        /*d_driving_torque*/ 0.01, /*end_driving_torque*/ 4, 
+        /*start_driving_torque*/ 0, /*theta0*/ 0.2, /*ang_v0*/ 0, /*points*/ 10, 
+        /*linear*/ false, /*ofile*/ "", /*plot*/ true, /*zoom*/ {});
+    
+    // Problem 4 Initial View
     bifurcation(/*dt*/ 0.01, /*end_t*/ 200, 
         /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
-        /*d_driving_torque*/ 0.1, /*end_driving_torque*/ 4, /*theta0*/ 0.2, 
-        /*ang_v0*/ 0, /*points*/ 3, /*linear*/ false, /*ofile*/ "", /*plot*/ true,
-        /*zoom*/ &zoom);
-    
-    return 0;
-    ///////TODO Figure out why this seems to be exhibiting non-chaos
+        /*d_driving_torque*/ 0.005, /*end_driving_torque*/ 4, 
+        /*start_driving_torque*/ 0, /*theta0*/ 0.2, /*ang_v0*/ 0, /*points*/ 10, 
+        /*linear*/ false, /*ofile*/ "", /*plot*/ true, /*zoom*/ {});
+    // Problem 4 - ZOOM 1
+    bifurcation(/*dt*/ 0.005, /*end_t*/ 200, 
+        /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
+        /*d_driving_torque*/ 0.001, /*end_driving_torque*/ 1.491, 
+        /*start_driving_torque*/ 1.28, /*theta0*/ 0.2, /*ang_v0*/ 0, /*points*/ 10, 
+        /*linear*/ false, /*ofile*/ "", /*plot*/ true, /*zoom*/ {});
+    // Problem 4 - ZOOM 2
+    bifurcation(/*dt*/ 0.001, /*end_t*/ 200, 
+        /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
+        /*d_driving_torque*/ 0.0005, /*end_driving_torque*/ 1.491, 
+        /*start_driving_torque*/ 1.415, /*theta0*/ 0.2, /*ang_v0*/ 0, /*points*/ 10, 
+        /*linear*/ false, /*ofile*/ "", /*plot*/ true, /*zoom*/ {});
 }
 
