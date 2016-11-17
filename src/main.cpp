@@ -131,8 +131,6 @@ tuple<double,double,double> one_step(tuple<double,double,double> prev,double dt,
                                  friction_coef, driving_freq, driving_torque);
         theta_new = get<1>(prev) + get<2>(prev) * dt + 0.5 * ai \
                                                                 * pow(dt, 2);
-        double af = dw_dt(theta_new, get<2>(prev), get<0>(prev), nat_freq, 
-                                friction_coef, driving_freq, driving_torque);
         ang_v_new = (get<2>(prev) + 0.5 * (ai - pow(nat_freq, 2) * theta_new \
                 + driving_torque * sin(driving_freq * time_new) ) * dt) \
                 / (1 + friction_coef / 2 * dt);
