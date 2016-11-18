@@ -80,11 +80,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="title">Synopsis </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><p>This project uses the leapfrog algorithm to numerically integrate the motion of chaotic pendulums. It plots position versus time of a nonlinear, damped, driven pendulum which exhibits chaos. It then constructs the bifurcation diagram with angular position at long time as a function of the driving torque, showing the route to chaos via period doubling.</p>
+<div class="textblock"><p>This project uses the leapfrog algorithm to numerically integrate the motion of chaotic pendulums. It plots position versus time of a nonlinear, damped, driven pendulum which exhibits chaos. It then constructs the bifurcation diagram with angular position at long time as a function of the driving torque, showing the route to chaos via period doubling. It lastly plots Lyapunov divergence as a function of time; future work will include calculating the Lyapunov coefficient.</p>
 <p>This project can be found on <a href="https://github.com/hdamron17/Pendulum-Chaos">Github</a>.</p>
 <p>More complete documentation can be found at (project_root)/doc/html/index.html.</p>
 <h2>Usage</h2>
-<p>To use, unpack tar.gz file to desired path Ensure all dependencies are installed and part of linker path In a terminal run </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;$ cd path_to_project/&quot;Pendulum-Chaos&quot;</div><div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;$ make</div><div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;$ ./dist/Debug/GNU-Linux/pendulum-chaos</div></div><!-- fragment --><p> Twenty graphs should spam the screen with science</p>
+<p>To use, unpack tar.gz file to desired path Ensure all dependencies are installed and part of linker path In a terminal run </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;$ cd path_to_project/&quot;Pendulum-Chaos&quot;</div><div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;$ make</div><div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;$ ./dist/Debug/GNU-Linux/pendulum-chaos</div></div><!-- fragment --><p> Twelve graphs should spam the screen with science</p>
 <h2>Dependencies</h2>
 <p>This project uses: </p><ul>
 <li>

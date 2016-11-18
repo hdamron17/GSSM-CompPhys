@@ -112,17 +112,19 @@ Functions</h2></td></tr>
 <tr class="separator:a24f5c95ebf59817e53be6adad9bbb6f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af78c830e0d0a07199dffb71fc64839bd"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#af78c830e0d0a07199dffb71fc64839bd">dw_dt</a> (double theta, double ang_v, double t, double nat_freq, double friction_coef, double driving_freq, double driving_torque, bool linear)</td></tr>
 <tr class="separator:af78c830e0d0a07199dffb71fc64839bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5e92766278c0105b38bb1f1ed5fc3b4f"><td class="memItemLeft" align="right" valign="top">tuple&lt; double, double, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a5e92766278c0105b38bb1f1ed5fc3b4f">one_step</a> (tuple&lt; double, double, double &gt; prev, double dt, double nat_freq, double friction_coef, double driving_freq, double driving_torque, bool linear=true)</td></tr>
-<tr class="separator:a5e92766278c0105b38bb1f1ed5fc3b4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adf7c1d106a20c5f728bb21bdd425cc54"><td class="memItemLeft" align="right" valign="top">vector&lt; tuple&lt; double, double, double &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#adf7c1d106a20c5f728bb21bdd425cc54">shm_damped_driven</a> (double theta0, double ang_v0, double dt, double end_t, double nat_freq, double friction_coef, double driving_freq, double driving_torque, bool plot_x_vs_time=false, bool plot_phase_space=false, bool linear=true, string ofile=&quot;&quot;)</td></tr>
-<tr class="separator:adf7c1d106a20c5f728bb21bdd425cc54"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8d5b9f10df4f08d123827436d625bfb9"><td class="memItemLeft" align="right" valign="top">vector&lt; tuple&lt; double, vector&lt; double &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a8d5b9f10df4f08d123827436d625bfb9">bifurcation</a> (double dt, double end_t, double nat_freq, double friction_coef, double driving_freq, double d_driving_torque, double end_driving_torque, double start_driving_torque, double theta0=0, double ang_v0=0, int points=10, bool linear=false, string ofile=&quot;&quot;, bool plot=false, vector&lt; tuple&lt; double, double, double, double &gt;&gt; zoom={})</td></tr>
-<tr class="separator:a8d5b9f10df4f08d123827436d625bfb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a79156fefbdfbd6cd5001b73290a42ce0"><td class="memItemLeft" align="right" valign="top">tuple&lt; double, double, double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a79156fefbdfbd6cd5001b73290a42ce0">one_step</a> (tuple&lt; double, double, double &gt; prev, double dt, double nat_freq, double friction_coef, double driving_freq, double driving_torque, bool linear=true, bool bounded=true)</td></tr>
+<tr class="separator:a79156fefbdfbd6cd5001b73290a42ce0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab70771403d0f4e9b55b96ab77c7c5602"><td class="memItemLeft" align="right" valign="top">vector&lt; tuple&lt; double, double, double &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#ab70771403d0f4e9b55b96ab77c7c5602">shm_damped_driven</a> (double theta0, double ang_v0, double dt, double end_t, double nat_freq, double friction_coef, double driving_freq, double driving_torque, bool plot_x_vs_time=false, bool plot_phase_space=false, bool linear=true, bool bounded=true, string ofile=&quot;&quot;)</td></tr>
+<tr class="separator:ab70771403d0f4e9b55b96ab77c7c5602"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2113a74ffc67ad739c6c20ba0ed9d448"><td class="memItemLeft" align="right" valign="top">vector&lt; tuple&lt; double, vector&lt; double &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a2113a74ffc67ad739c6c20ba0ed9d448">bifurcation</a> (double dt, double end_t, double nat_freq, double friction_coef, double driving_freq, double d_driving_torque, double end_driving_torque, double start_driving_torque, double theta0=0, double ang_v0=0, int points=10, bool linear=false, bool plot=false, vector&lt; tuple&lt; double, double, double, double &gt;&gt; zoom={})</td></tr>
+<tr class="separator:a2113a74ffc67ad739c6c20ba0ed9d448"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8745acf0e7c87fa10356877488a4fb22"><td class="memItemLeft" align="right" valign="top">vector&lt; tuple&lt; double, double &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#a8745acf0e7c87fa10356877488a4fb22">lyapunov</a> (double theta1, double theta2, double ang_v0, double dt, double end_t, double nat_freq, double friction_coef, double driving_freq, double driving_torque, bool plot=false, bool linear=true, string ofile=&quot;&quot;)</td></tr>
+<tr class="separator:a8745acf0e7c87fa10356877488a4fb22"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae66f6b31b5ad750f1fe042a706a4e3d4"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="main_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4">main</a> ()</td></tr>
 <tr class="separator:ae66f6b31b5ad750f1fe042a706a4e3d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="a8d5b9f10df4f08d123827436d625bfb9"></a>
+<a class="anchor" id="a2113a74ffc67ad739c6c20ba0ed9d448"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -201,12 +203,6 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">string&#160;</td>
-          <td class="paramname"><em>ofile</em> = <code>&quot;&quot;</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">bool&#160;</td>
           <td class="paramname"><em>plot</em> = <code>false</code>, </td>
         </tr>
@@ -237,7 +233,6 @@ Functions</h2></td></tr>
     <tr><td class="paramname">ang_v0</td><td>Starting angular velocity (should not affect plot) </td></tr>
     <tr><td class="paramname">points</td><td>Number of points included for each iteration </td></tr>
     <tr><td class="paramname">linear</td><td>If true, plots with linear estimation, else nonlinear </td></tr>
-    <tr><td class="paramname">ofile</td><td>File name to hold output </td></tr>
     <tr><td class="paramname">plot</td><td>If true, plots to Gnuplot </td></tr>
     <tr><td class="paramname">zoom</td><td>Numerous zoom with dimensions (x, y, width, height) </td></tr>
   </table>
@@ -245,7 +240,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Returns vector containing the data of the plot in the form [ (driving_torque, [positions at long time...] ) ] </dd></dl>
 
-<p>Definition at line <a class="el" href="main_8cpp_source.html#l00209">209</a> of file <a class="el" href="main_8cpp_source.html">main.cpp</a>.</p>
+<p>Definition at line <a class="el" href="main_8cpp_source.html#l00208">208</a> of file <a class="el" href="main_8cpp_source.html">main.cpp</a>.</p>
 
 </div>
 </div>
@@ -370,6 +365,112 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="a8745acf0e7c87fa10356877488a4fb22"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">vector&lt;tuple&lt;double,double&gt; &gt; lyapunov </td>
+          <td>(</td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>theta1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>theta2</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>ang_v0</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>dt</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>end_t</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>nat_freq</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>friction_coef</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>driving_freq</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">double&#160;</td>
+          <td class="paramname"><em>driving_torque</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>plot</em> = <code>false</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>linear</em> = <code>true</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">string&#160;</td>
+          <td class="paramname"><em>ofile</em> = <code>&quot;&quot;</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Plots the difference between two pendulums with different initial positions </p><dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">theta1</td><td>Initial angular position of pendulum 1 </td></tr>
+    <tr><td class="paramname">theta2</td><td>Initial angular position of pendulum 2 (must be near theta1) </td></tr>
+    <tr><td class="paramname">ang_v0</td><td>Initial angular velocity </td></tr>
+    <tr><td class="paramname">dt</td><td>Time step </td></tr>
+    <tr><td class="paramname">end_t</td><td>End time of simulation </td></tr>
+    <tr><td class="paramname">nat_freq</td><td>Natural frequency ( sqrt(g/l) ) </td></tr>
+    <tr><td class="paramname">friction_coef</td><td>Coefficient of friction </td></tr>
+    <tr><td class="paramname">driving_freq</td><td>Frequency of driving force </td></tr>
+    <tr><td class="paramname">driving_torque</td><td>Torque due to driving force </td></tr>
+    <tr><td class="paramname">plot</td><td>If true, plots to Gnuplot </td></tr>
+    <tr><td class="paramname">linear</td><td>If true, uses linear estimation, else nonlinear </td></tr>
+    <tr><td class="paramname">ofile</td><td>File name to output csv </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Returns vector containing tuples (difference in position, time) </dd></dl>
+
+<p>Definition at line <a class="el" href="main_8cpp_source.html#l00283">283</a> of file <a class="el" href="main_8cpp_source.html">main.cpp</a>.</p>
+
+</div>
+</div>
 <a class="anchor" id="ae66f6b31b5ad750f1fe042a706a4e3d4"></a>
 <div class="memitem">
 <div class="memproto">
@@ -383,11 +484,11 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Definition at line <a class="el" href="main_8cpp_source.html#l00271">271</a> of file <a class="el" href="main_8cpp_source.html">main.cpp</a>.</p>
+<p>Definition at line <a class="el" href="main_8cpp_source.html#l00323">323</a> of file <a class="el" href="main_8cpp_source.html">main.cpp</a>.</p>
 
 </div>
 </div>
-<a class="anchor" id="a5e92766278c0105b38bb1f1ed5fc3b4f"></a>
+<a class="anchor" id="a79156fefbdfbd6cd5001b73290a42ce0"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -431,7 +532,13 @@ Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>linear</em> = <code>true</code>&#160;</td>
+          <td class="paramname"><em>linear</em> = <code>true</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>bounded</em> = <code>true</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -458,7 +565,7 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="adf7c1d106a20c5f728bb21bdd425cc54"></a>
+<a class="anchor" id="ab70771403d0f4e9b55b96ab77c7c5602"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -531,6 +638,12 @@ Functions</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>bounded</em> = <code>true</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">string&#160;</td>
           <td class="paramname"><em>ofile</em> = <code>&quot;&quot;</code>&#160;</td>
         </tr>
@@ -561,7 +674,7 @@ Functions</h2></td></tr>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>returns vector containing tuples (time, position, angular velocity) </dd></dl>
 
-<p>Definition at line <a class="el" href="main_8cpp_source.html#l00145">145</a> of file <a class="el" href="main_8cpp_source.html">main.cpp</a>.</p>
+<p>Definition at line <a class="el" href="main_8cpp_source.html#l00146">146</a> of file <a class="el" href="main_8cpp_source.html">main.cpp</a>.</p>
 
 </div>
 </div>

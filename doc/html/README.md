@@ -4,7 +4,8 @@ This project uses the leapfrog algorithm to numerically integrate the motion of
 chaotic pendulums. It plots position versus time of a nonlinear, damped, driven 
 pendulum which exhibits chaos. It then constructs the bifurcation diagram with 
 angular position at long time as a function of the driving torque, showing the route to chaos
-via period doubling.
+via period doubling. It lastly plots Lyapunov divergence as a function of time; future 
+work will include calculating the Lyapunov coefficient.
 
 This project can be found on [Github](https://github.com/hdamron17/Pendulum-Chaos).
 
@@ -20,7 +21,7 @@ $ cd path_to_project/"Pendulum-Chaos"
 $ make
 $ ./dist/Debug/GNU-Linux/pendulum-chaos
 ```
-Twenty graphs should spam the screen with science
+Twelve graphs should spam the screen with science
 
 ## Dependencies
 
