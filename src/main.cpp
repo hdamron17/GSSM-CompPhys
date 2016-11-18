@@ -266,6 +266,26 @@ vector<tuple<double,vector<double>>> bifurcation(double dt, double end_t,
     return data;
 }
 
+vector<tuple<double,double>> antinodes(vector<tuple<double,double>> raw, 
+                                                    bool peaks, bool valleys) {
+    vector<tuple<double,double>> antinode_series;
+    bool direction = false;
+    for(auto iter = raw.begin() + 1; iter < raw.end(); iter++) {
+        if(direction && get<1>(*iter) < get<1>(*(iter-1))) {
+            //Direction is up and slope is negative = peak
+            direction = false;
+            if(peaks)
+                antinode_series.push_back(*(iter-1));
+        } else if(!direction && get<1>(*iter) > get<1>(*(iter-1))) {
+            //Direction is down and slope is positive = valley
+            direction = true;
+            if(valleys)
+                antinode_series.push_back(*(iter-1));
+        }
+    }
+    return antinode_series;
+}
+
 /**
  * Plots the difference between two pendulums with different initial positions
  * @param theta1 Initial angular position of pendulum 1
@@ -282,7 +302,7 @@ vector<tuple<double,vector<double>>> bifurcation(double dt, double end_t,
  * @param ofile File name to output csv
  * @return Returns vector containing tuples (difference in position, time)
  */
-vector<tuple<double,double>> lyapunov (double theta1, double theta2, 
+vector<tuple<double,double>> lyapunov(double theta1, double theta2, 
         double ang_v0, double dt, double end_t, double nat_freq, 
         double friction_coef, double driving_freq,  double driving_torque,
         bool plot=false, bool linear=true, string ofile="") {
@@ -308,7 +328,9 @@ vector<tuple<double,double>> lyapunov (double theta1, double theta2,
             << "set ylabel \'Difference between angular positions (m)\'\n"
             << "set xlabel \'Time (s)\'\n"
             << "unset key\n"
-            << "plot" << gp.file1d(lyapunov_series) << "with points lc rgb \"red\" pt 7 ps 0.05\n";
+            << "plot" << gp.file1d(lyapunov_series)
+                << "with points lc rgb \"red\" pt 7 ps 0.05, \\\n"
+            << gp.file1d(antinodes(lyapunov_series, true, false)) << "with points lc rgb \"blue\" pt 7 ps 1\n";
     }
     
     if(ofile != "") {
@@ -323,60 +345,60 @@ vector<tuple<double,double>> lyapunov (double theta1, double theta2,
  * Constructs a lot of plot and spams the screen
  */
 int main() {
-    // Problem 1
-    shm_damped_driven(/*theta0*/ 0.3, /*ang_v0*/ 0, /*dt*/ 0.001, /*end_t*/ 100, 
-            /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
-            /*driving_torque*/ 1.6, /*plot_x_vs_y*/ true, 
-            /*plot_phase_space*/ true, /*linear*/ false, /*bounded*/ true, 
-            /*output_file*/ "");
-    
-    // Problem 3 - Modified initial conditions position vs time plot
-    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.001, /*end_t*/ 100, 
-            /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
-            /*driving_torque*/ 1.6, /*plot_x_vs_y*/ true, 
-            /*plot_phase_space*/ true, /*linear*/ false, /*bounded*/ true,
-            /*output_file*/ "");
-    
-    // Problem 2 - Bifurcation Base Plot
-    bifurcation(/*dt*/ 0.01, /*end_t*/ 400, 
-        /*nat_freq*/ 1, /*friction_coef*/ 0.5, /*driving_freq*/ 2/3.0, 
-        /*d_driving_torque*/ 0.01, /*end_driving_torque*/ 4, 
-        /*start_driving_torque*/ 0, /*theta0*/ 0.3, /*ang_v0*/ 0, /*points*/ 10, 
-        /*linear*/ false, /*plot*/ true, /*zoom*/ {});
-    
-    // Problem 2 - Modified Friction Coefficient
-    bifurcation(/*dt*/ 0.01, /*end_t*/ 400, 
-        /*nat_freq*/ 1, /*friction_coef*/ 1, /*driving_freq*/ 2/3.0, 
-        /*d_driving_torque*/ 0.01, /*end_driving_torque*/ 4, 
-        /*start_driving_torque*/ 0, /*theta0*/ 0.3, /*ang_v0*/ 0, /*points*/ 10, 
-        /*linear*/ false, /*plot*/ true, /*zoom*/ {});
-    
-    // Problem 3 - Modified initial conditions bifurcation
-    bifurcation(/*dt*/ 0.01, /*end_t*/ 400, 
-        /*nat_freq*/ 1, /*friction_coef*/ 0.5, /*driving_freq*/ 2/3.0, 
-        /*d_driving_torque*/ 0.01, /*end_driving_torque*/ 4, 
-        /*start_driving_torque*/ 0, /*theta0*/ 0.2, /*ang_v0*/ 0, /*points*/ 10, 
-        /*linear*/ false, /*plot*/ true, /*zoom*/ {});
-    
-    // Problem 4 Initial View
-    bifurcation(/*dt*/ 0.01, /*end_t*/ 200, 
-        /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
-        /*d_driving_torque*/ 0.005, /*end_driving_torque*/ 4, 
-        /*start_driving_torque*/ 0, /*theta0*/ 0.2, /*ang_v0*/ 0, /*points*/ 10, 
-        /*linear*/ false, /*plot*/ true, /*zoom*/ {});
-    // Problem 4 - ZOOM 1
-    bifurcation(/*dt*/ 0.005, /*end_t*/ 200, 
-        /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
-        /*d_driving_torque*/ 0.001, /*end_driving_torque*/ 1.491, 
-        /*start_driving_torque*/ 1.28, /*theta0*/ 0.2, /*ang_v0*/ 0, /*points*/ 10, 
-        /*linear*/ false, /*plot*/ true, /*zoom*/ {});
-    // Problem 4 - ZOOM 2
-    bifurcation(/*dt*/ 0.001, /*end_t*/ 200, 
-        /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
-        /*d_driving_torque*/ 0.0005, /*end_driving_torque*/ 1.491, 
-        /*start_driving_torque*/ 1.415, /*theta0*/ 0.2, /*ang_v0*/ 0, /*points*/ 10, 
-        /*linear*/ false, /*plot*/ true, /*zoom*/ {});
-
+//    // Problem 1
+//    shm_damped_driven(/*theta0*/ 0.3, /*ang_v0*/ 0, /*dt*/ 0.001, /*end_t*/ 100, 
+//            /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
+//            /*driving_torque*/ 1.6, /*plot_x_vs_y*/ true, 
+//            /*plot_phase_space*/ true, /*linear*/ false, /*bounded*/ true, 
+//            /*output_file*/ "");
+//    
+//    // Problem 3 - Modified initial conditions position vs time plot
+//    shm_damped_driven(/*theta0*/ 0.2, /*ang_v0*/ 0, /*dt*/ 0.001, /*end_t*/ 100, 
+//            /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
+//            /*driving_torque*/ 1.6, /*plot_x_vs_y*/ true, 
+//            /*plot_phase_space*/ true, /*linear*/ false, /*bounded*/ true,
+//            /*output_file*/ "");
+//    
+//    // Problem 2 - Bifurcation Base Plot
+//    bifurcation(/*dt*/ 0.01, /*end_t*/ 400, 
+//        /*nat_freq*/ 1, /*friction_coef*/ 0.5, /*driving_freq*/ 2/3.0, 
+//        /*d_driving_torque*/ 0.01, /*end_driving_torque*/ 4, 
+//        /*start_driving_torque*/ 0, /*theta0*/ 0.3, /*ang_v0*/ 0, /*points*/ 10, 
+//        /*linear*/ false, /*plot*/ true, /*zoom*/ {});
+//    
+//    // Problem 2 - Modified Friction Coefficient
+//    bifurcation(/*dt*/ 0.01, /*end_t*/ 400, 
+//        /*nat_freq*/ 1, /*friction_coef*/ 1, /*driving_freq*/ 2/3.0, 
+//        /*d_driving_torque*/ 0.01, /*end_driving_torque*/ 4, 
+//        /*start_driving_torque*/ 0, /*theta0*/ 0.3, /*ang_v0*/ 0, /*points*/ 10, 
+//        /*linear*/ false, /*plot*/ true, /*zoom*/ {});
+//    
+//    // Problem 3 - Modified initial conditions bifurcation
+//    bifurcation(/*dt*/ 0.01, /*end_t*/ 400, 
+//        /*nat_freq*/ 1, /*friction_coef*/ 0.5, /*driving_freq*/ 2/3.0, 
+//        /*d_driving_torque*/ 0.01, /*end_driving_torque*/ 4, 
+//        /*start_driving_torque*/ 0, /*theta0*/ 0.2, /*ang_v0*/ 0, /*points*/ 10, 
+//        /*linear*/ false, /*plot*/ true, /*zoom*/ {});
+//    
+//    // Problem 4 Initial View
+//    bifurcation(/*dt*/ 0.01, /*end_t*/ 200, 
+//        /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
+//        /*d_driving_torque*/ 0.005, /*end_driving_torque*/ 4, 
+//        /*start_driving_torque*/ 0, /*theta0*/ 0.2, /*ang_v0*/ 0, /*points*/ 10, 
+//        /*linear*/ false, /*plot*/ true, /*zoom*/ {});
+//    // Problem 4 - ZOOM 1
+//    bifurcation(/*dt*/ 0.005, /*end_t*/ 200, 
+//        /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
+//        /*d_driving_torque*/ 0.001, /*end_driving_torque*/ 1.491, 
+//        /*start_driving_torque*/ 1.28, /*theta0*/ 0.2, /*ang_v0*/ 0, /*points*/ 10, 
+//        /*linear*/ false, /*plot*/ true, /*zoom*/ {});
+//    // Problem 4 - ZOOM 2
+//    bifurcation(/*dt*/ 0.001, /*end_t*/ 200, 
+//        /*nat_freq*/ 1, /*friction_coef*/ 1/2.0, /*driving_freq*/ 2/3.0, 
+//        /*d_driving_torque*/ 0.0005, /*end_driving_torque*/ 1.491, 
+//        /*start_driving_torque*/ 1.415, /*theta0*/ 0.2, /*ang_v0*/ 0, /*points*/ 10, 
+//        /*linear*/ false, /*plot*/ true, /*zoom*/ {});
+//
     //Problem 8 - Plot only
     lyapunov (/*theta1*/0.2, /*theta2*/ 0.2+numeric_limits<float>::epsilon(),
         /*ang_v0*/ 0, /*dt*/ 0.001, /*end_t*/ 100, /*nat_freq*/ 1, 
