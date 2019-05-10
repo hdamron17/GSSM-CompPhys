@@ -2,19 +2,12 @@
 ##### Project files
 build/
 dist/
-docs/
-nbproject/
+doc/
 
 ##### C++ Object Files
 *.o
 *.o.d
 
-##### Compressed Versions
 *.tar.gz
-=======
-##### Image Files
 *.png
 *.jpg
-
-##### Temp Files
-.~*#
