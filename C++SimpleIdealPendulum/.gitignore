@@ -1,0 +1,11 @@
+
+##### Project files
+build/
+dist/
+doc/
+
+##### C++ Object Files
+*.o
+*.o.d
+
+*.tar.gz
